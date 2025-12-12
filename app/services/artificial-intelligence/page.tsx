@@ -808,10 +808,10 @@ export default function AIPage() {
                         style={{
                           top: (isHovered || isMobileActive) ? '0' : '100%',
                           bottom: (isHovered || isMobileActive) ? '0' : '-100%',
-                          transform: window.innerWidth >= 768 
+                          transform: typeof window !== 'undefined' && window.innerWidth >= 768 
                             ? `translateY(${(mouseY - 50) * 0.2}px)` 
                             : `translateY(${(1 - scrollProgress) * 20}px)`,
-                          opacity: window.innerWidth >= 768 ? 1 : scrollProgress
+                          opacity: typeof window !== 'undefined' && window.innerWidth >= 768 ? 1 : scrollProgress
                         }}
                       />
 
