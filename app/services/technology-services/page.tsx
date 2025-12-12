@@ -4,7 +4,7 @@ import Link from 'next/link';
 import AetherFlowHero from "@/components/ui/aether-flow-hero";
 import ScrollStack, { ScrollStackItem } from "@/components/ui/scrollstack";
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 // Dynamic stepper data
 const stepperData = [
@@ -317,6 +317,17 @@ function StepperSection() {
 
 export default function DemoOne() {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // First animation: Scale text as section enters from bottom to center
   const { scrollYProgress: scaleProgress } = useScroll({
@@ -324,7 +335,6 @@ export default function DemoOne() {
     offset: ["start end", "end start"]
   });
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const sectionHeight = useTransform(scaleProgress, [0, 1], isMobile ? [100, 180] : [150, 280]); // Smaller height on mobile
   const textScale = useTransform(scaleProgress, [0, 0.25, 0.5, 1], isMobile ? [0.5, 0.7, 0.9, 1] : [0.3, 0.55, 0.8, 1]); // Faster scaling on mobile
 
@@ -337,7 +347,7 @@ export default function DemoOne() {
         ref={containerRef}
         className="relative bg-white pt-[5%] mb-0 md:mb-0"
         style={{
-          height: window.innerWidth < 768 ? '60vh' : '100vh'
+          height: isMobile ? '60vh' : '100vh'
         }}
       >
         <motion.section
@@ -366,11 +376,11 @@ export default function DemoOne() {
       <section className="bg-white -mt-35 md:mt-0">
         <ScrollStack 
           useWindowScroll={true}
-          itemDistance={typeof window !== 'undefined' && window.innerWidth < 768 ? 150 : 400}
-          itemStackDistance={typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 30}
-          baseScale={typeof window !== 'undefined' && window.innerWidth < 768 ? 0.92 : 0.88}
+          itemDistance={isMobile ? 150 : 400}
+          itemStackDistance={isMobile ? 10 : 30}
+          baseScale={isMobile ? 0.92 : 0.88}
           rotationAmount={0}
-          blurAmount={typeof window !== 'undefined' && window.innerWidth < 768 ? 5 : 8}
+          blurAmount={isMobile ? 5 : 8}
           cardColors={cardsData.map(card => card.bgColor)}
         >
           {cardsData.map((card) => (
