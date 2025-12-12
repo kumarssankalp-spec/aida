@@ -237,10 +237,7 @@ export default function Footer({ className = '', id }: FooterProps) {
           {/* Right Side - Legal Dropdown on mobile, Legal Links on desktop */}
           <div className="space-y-4">
             {/* Legal Links - Dropdown on mobile, list on desktop */}
-            <div className="lg:hidden"
-              onMouseEnter={() => setLegalOpen(true)}
-              onMouseLeave={() => setLegalOpen(false)}
-            >
+            <div className="lg:hidden">
               <button
                 onClick={() => setLegalOpen(!legalOpen)}
                 className="flex items-center gap-2 text-left text-xl sm:text-2xl font-normal hover:text-[#5919C1] transition mb-4"
@@ -282,14 +279,18 @@ export default function Footer({ className = '', id }: FooterProps) {
                       Disclaimer
                     </Link>
                   </li>
-                  <li>
-                    <Link href="/contact" scroll={true} className="text-base sm:text-lg hover:text-[#5919C1] transition inline-block relative pb-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#000000] after:transition-all after:duration-300 hover:after:w-[110%]">
-                      Contact us
-                    </Link>
-                  </li>
                 </ul>
               </div>
             </div>
+
+            {/* Contact Us - Separate on mobile */}
+            <Link
+              href="/contact"
+              scroll={true}
+              className="lg:hidden block text-black text-xl sm:text-2xl font-normal hover:text-[#5919C1] transition"
+            >
+              Contact us
+            </Link>
 
             {/* Desktop Legal Links */}
             <ul className="hidden lg:block space-y-2">

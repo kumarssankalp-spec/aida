@@ -253,7 +253,7 @@ export default function BigDataPage() {
             className="px-4 py-8 border-b border-[#DCDCDC]"
           >
             <h1 className="text-3xl sm:text-4xl font-normal mb-4 leading-tight">
-              Make Data the Strongest Arm of Your Business
+              Make Data the <span className='text-[#5919C1]'>Strongest Arm of Your Business</span>
             </h1>
             <p className="text-sm sm:text-base text-black/90 font-light mt-4">
               At AIDA Corporation, we turn data into your competitive edge. From strategy to full-scale analytics ecosystems, we help you make faster, smarter decisions with confidence. The result: sharper foresight, agile operations, and measurable business growth. Don't just manage data—master it.
@@ -265,11 +265,11 @@ export default function BigDataPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="border-b border-[#DCDCDC]"
+            className=""
           >
             <Link
               href="/get-started?service=Big Data %26 Analysis"
-              className="w-full flex items-center justify-between px-4 py-6 text-2xl sm:text-3xl font-medium bg-[#A53A9A] hover:bg-[#321B79] text-white transition-all"
+              className="w-full flex items-center justify-between px-4 py-4 text-xl sm:text-3xl font-medium bg-[#240D39] hover:bg-[#321B79] text-white transition-all"
             >
               <span>Get in touch</span>
               <svg className="w-6 h-6 sm:w-8 sm:h-8 rotate-[-45deg]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,7 +286,7 @@ export default function BigDataPage() {
             className="relative bg-cover bg-center h-64 sm:h-80"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop')" }}
           >
-            <div className="absolute inset-0 bg-white/10"></div>
+            <div className="absolute inset-0 bg-[#240D39]/10"></div>
           </motion.div>
         </div>
       </section>
@@ -304,14 +304,14 @@ export default function BigDataPage() {
             {/* Content Grid Sections */}
 
             {/* Row 1 - Full Width Text */}
-            <div className="py-16 md:py-20 border-b border-[#DCDCDC]">
-              <div className="container mx-auto px-12">
+            <div className="py-8 md:py-16 lg:py-20 border-b border-[#DCDCDC]">
+              <div className="container mx-auto px-4 md:px-8 lg:px-12">
                 <motion.h3
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true }}
                   variants={fadeInUp}
-                  className="text-2xl md:text-3xl lg:text-4xl text-gray-700 leading-relaxed font-light"
+                  className="text-xl sm:text-2xl md:text-3xl lg:text-5xl xl:text-6xl text-gray-700 leading-snug md:leading-relaxed font-light"
                 >
                   Guaranteed performance, seamless scalability, and measurable efficiency so your focus stays on strategy, not systems.
                 </motion.h3>
@@ -522,7 +522,7 @@ export default function BigDataPage() {
                     whileInView="visible"
                     viewport={{ once: true }}
                     variants={fadeInUp}
-                    className="text-2xl md:text-3xl lg:text-4xl font-normal text-right max-w-4xl"
+                    className="text-3xl md:text-4xl lg:text-5xl font-normal max-w-3xl text-right"
                   >
                     Why AIDA is your safe bet <span className='text-[#5919C1]'>for big data success</span>
                   </motion.h2>
@@ -665,7 +665,7 @@ export default function BigDataPage() {
                     variants={fadeInUp}
                     className="text-3xl md:text-4xl lg:text-5xl font-normal max-w-3xl text-right"
                   >
-                    The transformative power of <span className="text-[#5919C1]">big data consulting in your industry</span>
+                    The transformative power of  <span className="text-[#5919C1]">big data consulting in your industry</span>
                   </motion.h2>
                 </div>
 
@@ -990,7 +990,7 @@ export default function BigDataPage() {
                             }`}
                         >
                           <div className="overflow-hidden">
-                            <div className="text-base md:text-lg font-semibold text-gray-800 space-y-4">
+                            <div className="text-base md:text-lg font-normal text-gray-800 space-y-4">
                               <p>
                                 At AIDA, our data storage architecture is designed around two powerful components: Data Lakes and Data Warehouses—so your business gets both flexibility and precision.
                                 A Data Lake captures raw data exactly as it arrives—structured, semi-structured, or unstructured—making it ideal for experimentation, AI training, and data science exploration. Even imperfect or noisy inputs are preserved for future discovery.
@@ -1030,7 +1030,7 @@ export default function BigDataPage() {
                             }`}
                         >
                           <div className="overflow-hidden">
-                            <div className="text-base md:text-lg font-semibold text-gray-800 space-y-4">
+                            <div className="text-base md:text-lg font-normal text-gray-800 space-y-4">
                               <p>
                                 At AIDA, our ETL/ELT pipelines seamlessly capture, clean, and move massive volumes of data from multiple sources into your big data ecosystem—where it’s transformed into live insights or automated actions.
                                 Whether it’s generating performance dashboards or triggering instant alerts (such as notifying a maintenance team when a sensor crosses a critical temperature), our pipelines ensure data never sleeps.
@@ -1072,7 +1072,7 @@ export default function BigDataPage() {
                             }`}
                         >
                           <div className="overflow-hidden">
-                            <div className="text-base md:text-lg font-semibold text-gray-800 space-y-4">
+                            <div className="text-base md:text-lg font-normal text-gray-800 space-y-4">
                               <p>
                                 AIDA applies AI-driven analytics, machine learning, and data mining to transform raw datasets into business-critical insights, visualized through intuitive BI dashboards built for leadership decision-making.
                               </p>

@@ -11,27 +11,27 @@ const stepperData = [
   {
     id: 1,
     title: "Discovery & Analysis",
-    description: "We begin by understanding your business goals, challenges, and data landscape to identify opportunities for AI integration."
+    description: "We begin by understanding your goals, challenges, workflows, and technical landscape to identify the highest-value engineering opportunities."
   },
   {
     id: 2,
-    title: "Strategy & Planning",
-    description: "Our team develops a comprehensive AI roadmap aligned with your objectives, defining key metrics and success criteria."
+    title: "Architecture & Planning",
+    description: "Our architects define the right tech stack, system design, integrations, and delivery roadmap to ensure scalability and long-term stability."
   },
   {
     id: 3,
-    title: "Development & Training",
-    description: "We build and train custom AI models using your data, ensuring accuracy, reliability, and scalability."
+    title: "Agile Development",
+    description: "Cross-functional teams build fast and iteratively—ensuring every sprint delivers visible progress, measurable outcomes, and production-ready features."
   },
   {
     id: 4,
-    title: "Integration & Testing",
-    description: "Seamless integration with your existing systems followed by rigorous testing to ensure optimal performance."
+    title: "Quality Assurance & Hardening",
+    description: "Every component undergoes functional testing, performance checks, security validation, and real-world simulation to ensure reliability at scale."
   },
   {
     id: 5,
-    title: "Deployment & Optimization",
-    description: "Launch your AI solution with continuous monitoring and optimization to maximize ROI and business impact."
+    title: "Deployment & Continuous Support",
+    description: "We deploy securely to cloud or hybrid environments, set up DevOps automation, and continue maintaining, optimizing, and scaling your systems."
   }
 ];
 
@@ -195,7 +195,7 @@ function StepperSection() {
             viewport={{ once: true }}
             className="text-5xl sm:text-5xl md:text-5xl lg:text-6xl font-normal text-center mb-8 md:mb-8"
           >
-            Our Process
+            Delivery Framework
           </motion.h2>
 
           {/* Horizontal Stepper */}

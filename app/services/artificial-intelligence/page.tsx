@@ -308,7 +308,7 @@ export default function AIPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="backdrop-blur-lg bg-gradient-to-br from-purple-50/20 to-pink-50/30 border border-white/40 rounded-2xl p-6 sm:p-7 md:p-8 lg:p-10 shadow-sm md:shadow-2xl relative flex flex-col min-h-[280px] sm:min-h-[300px] md:min-h-[320px]"
+                className="backdrop-blur-sm bg-gradient-to-br from-purple-50/20 to-pink-50/30 border border-white/40 rounded-2xl p-6 sm:p-7 md:p-8 lg:p-10 shadow-sm md:shadow-2xl relative flex flex-col min-h-[280px] sm:min-h-[300px] md:min-h-[320px]"
               >
                 {/* Top Section */}
                 <div className="mb-auto">
