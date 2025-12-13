@@ -1,7 +1,7 @@
 ﻿'use client';
 import Link from 'next/link';
 import React from 'react';
-import { motion, MotionConfig, useInView, useScroll, useTransform } from 'framer-motion';
+import { motion, MotionConfig, useInView, useScroll, useTransform, useMotionValue, useAnimation } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 import NumberFlow, { useCanAnimate } from '@number-flow/react';
 
@@ -459,6 +459,49 @@ export default function DigitalMarketingPage() {
   const [expandedIndex, setExpandedIndex] = React.useState(0);
   const [allExpanded, setAllExpanded] = React.useState(false);
   const [isScrolling, setIsScrolling] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
+  
+  // Detect mobile on mount
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Badge auto-reset with motion values
+  const badgeX = useMotionValue(0);
+  const badgeY = useMotionValue(0);
+  const [badgeAnimState, setBadgeAnimState] = React.useState({ opacity: 1, scale: 1, rotate: 0 });
+  const resetTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  
+  // Tooltip state
+  const [showTooltip, setShowTooltip] = React.useState(false);
+  const [shakeEffect, setShakeEffect] = React.useState(false);
+  
+  // Show tooltip after 5 seconds of page load
+  React.useEffect(() => {
+    const tooltipTimer = setTimeout(() => {
+      setShowTooltip(true);
+      
+      // Start shake effect after tooltip is shown (500ms delay)
+      setTimeout(() => {
+        setShakeEffect(true);
+        
+        // Stop shake effect after animation completes
+        setTimeout(() => {
+          setShakeEffect(false);
+        }, 600);
+      }, 500);
+      
+      // Hide tooltip after 3 seconds
+      setTimeout(() => {
+        setShowTooltip(false);
+      }, 3000);
+    }, 5000);
+    
+    return () => clearTimeout(tooltipTimer);
+  }, []);
 
   // Handle "View All" button click
   const handleViewAll = () => {
@@ -534,15 +577,25 @@ export default function DigitalMarketingPage() {
       {/* Hero Section */}
       <section className={`relative bg-[#DCDCDC] text-black pt-12 md:pt-16 lg:pt-20 pb-0 overflow-hidden rounded-b-[40px] md:rounded-b-[60px] ${isScrolling ? 'pointer-events-none' : ''}`}>
         <div className="container mx-auto px-4 lg:px-8">
-          {/* Top Row - H1 and Paragraph */}
+          
           <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-4 md:mb-6">
+            {/* desktop heaidng */}
             <motion.h1
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-light leading-tight max-w-4xl"
+              className="hidden md:block text-4xl md:text-5xl lg:text-6xl font-light leading-tight max-w-4xl"
             >
               Your Business Should Be <br />Growing Faster.  <span className='text-[#5919C1] font-normal'>Let’s Fix That.</span>
+            </motion.h1>
+            {/* mobile heaidng */}
+              <motion.h1
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="md:hidden text-[35px] font-light leading-tight max-w-4xl"
+            >
+              Your Business Should  <br />Be Growing Faster. <br /> <span className='text-[#5919C1] font-normal'>Let’s Fix That.</span>
             </motion.h1>
             <motion.div
               initial={{ opacity: 0, x: 50 }}
@@ -635,11 +688,13 @@ export default function DigitalMarketingPage() {
                 className="w-full h-[300px] md:h-[350px] lg:h-[400px] object-cover rounded-[60px] md:rounded-[80px]"
               />
               
-              {/* Badge Overlay - Top Right Corner of Image */}
+              {/* Badge Overlay - Desktop: Top Right with hover effect, Mobile: Draggable */}
               <div
                 className={`absolute right-6 sm:right-8 md:right-10 lg:right-20 top-4 sm:top-6 md:top-8 lg:top-8 -translate-y-1/2 translate-x-1/2 z-10 ${isScrolling ? 'pointer-events-none' : ''}`}
               >
+                {/* Desktop Badge - Hover Effect */}
                 <motion.div
+                  className="hidden md:block"
                   initial={{ opacity: 0, scale: 0, rotate: -180 }}
                   animate={{ opacity: 1, scale: 1, rotate: 0 }}
                   transition={{ duration: 0.8, delay: 0.8, type: "spring", stiffness: 150, damping: 12 }}
@@ -658,10 +713,10 @@ export default function DigitalMarketingPage() {
                     transition: 'transform 0.2s ease-out'
                   }}
                 >
-                  <div className="relative w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48">
+                  <div className="relative w-40 h-40 lg:w-48 lg:h-48">
                     <div className="absolute inset-0 bg-gradient-to-r from-[#5919C1] to-[#7B3FF2] rounded-full animate-spin-slow shadow-2xl"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-5xl md:text-6xl lg:text-7xl font-bold animate-spin-reverse text-white">✱</div>
+                      <div className="text-6xl lg:text-7xl font-bold animate-spin-reverse text-white">✱</div>
                     </div>
                     {/* Circular Text Around Border */}
                     <motion.svg
@@ -676,13 +731,126 @@ export default function DigitalMarketingPage() {
                           d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
                         />
                       </defs>
-                      <text className="text-[4.5px] md:text-[5px] lg:text-[5.5px] font-black fill-white tracking-[0.3em]" style={{ fontWeight: '900', strokeWidth: '0.5px', stroke: 'white' }}>
+                      <text className="text-[5px] lg:text-[5.5px] font-black fill-white tracking-[0.3em]" style={{ fontWeight: '900', strokeWidth: '0.5px', stroke: 'white' }}>
                         <textPath href="#circlePath" startOffset="0%">
                           + Performance + Predictability  +  Profit + Built for ROI 
                         </textPath>
                       </text>
                     </motion.svg>
                   </div>
+                </motion.div>
+
+                {/* Mobile Badge - Draggable */}
+                <motion.div
+                  className="md:hidden cursor-grab active:cursor-grabbing relative"
+                  initial={{ opacity: 0, scale: 0, rotate: -180 }}
+                  animate={{
+                    ...badgeAnimState,
+                    x: shakeEffect ? [0, -3, 3, -3, 3, 0] : 0,
+                    y: shakeEffect ? [0, -2, 2, -2, 2, 0] : 0
+                  }}
+                  transition={{ 
+                    opacity: { 
+                      duration: badgeAnimState.opacity === 0 ? 0.6 : 0.8, 
+                      delay: badgeAnimState.opacity === 1 && badgeAnimState.scale === 1 ? 0.8 : 0,
+                      type: "spring", 
+                      stiffness: 150, 
+                      damping: 12 
+                    },
+                    scale: { 
+                      duration: badgeAnimState.scale === 0 ? 0.6 : 0.8, 
+                      delay: badgeAnimState.opacity === 1 && badgeAnimState.scale === 1 ? 0.8 : 0,
+                      type: "spring", 
+                      stiffness: 150, 
+                      damping: 12 
+                    },
+                    rotate: { 
+                      duration: badgeAnimState.rotate === -180 ? 0.6 : 0.8, 
+                      delay: badgeAnimState.opacity === 1 && badgeAnimState.scale === 1 ? 0.8 : 0,
+                      type: "spring", 
+                      stiffness: 150, 
+                      damping: 12 
+                    }
+                  }}
+                  drag
+                  dragConstraints={{
+                    top: -400,
+                    left: -280,
+                    right: -20,
+                    bottom: 280,
+                  }}
+                  dragElastic={0.2}
+                  dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
+                  whileDrag={{ scale: 1.15, rotate: 20, boxShadow: "0 30px 60px -15px rgba(89, 25, 193, 0.6)" }}
+                  whileTap={{ scale: 0.9 }}
+                  style={{ x: badgeX, y: badgeY }}
+                  onDragEnd={(event, info) => {
+                    // Hide tooltip when dragged
+                    setShowTooltip(false);
+                    setShakeEffect(false);
+                    
+                    // Clear any existing timer
+                    if (resetTimerRef.current) {
+                      clearTimeout(resetTimerRef.current);
+                    }
+                    
+                    // Badge stays at dragged position for 4 seconds
+                    resetTimerRef.current = setTimeout(() => {
+                      // Then play exit animation
+                      setBadgeAnimState({ opacity: 0, scale: 0, rotate: -180 });
+                      
+                      // Wait for exit animation to complete (400ms - slightly less than animation duration)
+                      setTimeout(() => {
+                        // Reset position to original (instantly while invisible)
+                        badgeX.set(0);
+                        badgeY.set(0);
+                        
+                        // Immediately re-enter from original position
+                        setBadgeAnimState({ opacity: 1, scale: 1, rotate: 0 });
+                      }, 400);
+                    }, 4000);
+                  }}
+                >
+                  <div className="relative w-24 h-24">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#5919C1] to-[#7B3FF2] rounded-full animate-spin-slow shadow-xl"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-4xl font-bold animate-spin-reverse text-white">✱</div>
+                    </div>
+                    {/* Circular Text Around Border */}
+                    <motion.svg
+                      className="absolute inset-0 w-full h-full"
+                      viewBox="0 0 100 100"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    >
+                      <defs>
+                        <path
+                          id="circlePath2"
+                          d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
+                        />
+                      </defs>
+                      <text className="text-[6.3px] font-black fill-white tracking-[0.2em]" style={{ fontWeight: '900', strokeWidth: '0.6px', stroke: 'white' }}>
+                        <textPath href="#circlePath2" startOffset="0%">
+                          + Performance + Predictability + Profit + Built for ROI 
+                        </textPath>
+                      </text>
+                    </motion.svg>
+                  </div>
+                  
+                  {/* Tooltip */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ 
+                      opacity: showTooltip ? 1 : 0, 
+                      y: showTooltip ? 0 : 10 
+                    }}
+                    transition={{ duration: 0.3 }}
+                    className="absolute -bottom-12 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-full text-sm whitespace-nowrap pointer-events-none"
+                    style={{ display: showTooltip ? 'block' : 'none' }}
+                  >
+                    Drag me!
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-black rotate-45"></div>
+                  </motion.div>
                 </motion.div>
               </div>
             </div>
@@ -726,16 +894,16 @@ export default function DigitalMarketingPage() {
       </div>
 
       {/* Our Work Section */}
-      <section className={`relative bg-[#ffffff] text-white py-20 md:py-28 lg:py-32 rounded-[40px] md:rounded-[60px] overflow-hidden ${isScrolling ? 'pointer-events-none' : ''}`}>
+      <section className={`relative bg-[#ffffff] text-white py-20 md:py-28 lg:py-32 rounded-none md:rounded-[60px] overflow-hidden ${isScrolling ? 'pointer-events-none' : ''}`}>
         {/* Background SVG */}
-        <div className="absolute inset-0 w-full px-10 md:px-10 lg:px-10 ">
+        <div className="absolute inset-0 w-full px-1 md:px-10 lg:px-10 ">
           <img 
             src="/Background_Website.svg" 
             alt="" 
-            className="w-full h-full object-cover opacity-100 rounded-3xl"
+            className="w-full h-full object-cover opacity-100 rounded-2xl md:rounded-3xl"
           />
         </div>
-        <div className="w-full px-6 md:px-12 lg:px-16 xl:container xl:mx-auto relative z-10">
+        <div className="w-full px-4 md:px-12 lg:px-16 xl:container xl:mx-auto relative z-10">
           {/* Header Row */}
           <div className="flex flex-col md:flex-row justify-between items-start gap-8 md:gap-16 mb-16 md:mb-20">
             {/* Left Side - Title */}
@@ -750,10 +918,10 @@ export default function DigitalMarketingPage() {
                 <div className="w-2 h-2 rounded-full bg-[#5919C1]"></div>
                 <span className="text-sm text-white uppercase tracking-wider">Our services</span>
               </div>
-              <h2 className="text-4xl sm:text-4xl md:text-4xl lg:text-5xl font-semibold leading-tight text-white">
+              <h2 className="text-[31.5px] sm:text-4xl md:text-4xl lg:text-5xl font-semibold leading-tight text-white">
                 We Don’t Sell Services,
                 <br />
-                We Build <span className="text-[#5919C1]">Growth Engines.</span>
+                We Build <span className="text-[#5919C1]">Growth Engines</span>
               </h2>
             </motion.div>
 
@@ -798,13 +966,18 @@ export default function DigitalMarketingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className={`group py-8 md:py-12 cursor-pointer ${index < workItems.length - 1 ? 'border-b border-white/30' : ''}`}
+                  className={`group py-6 md:py-12 cursor-pointer ${index < workItems.length - 1 ? 'border-b border-white/30' : ''}`}
                   onMouseEnter={() => !allExpanded && !isScrolling && setExpandedIndex(index)}
+                  onClick={() => {
+                    // Mobile click to expand - only one item at a time
+                    if (window.innerWidth < 768) {
+                      setExpandedIndex(isExpanded && index === expandedIndex ? -1 : index);
+                    }
+                  }}
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 items-center">
                     {/* Left Side - Image, Number, Title & Description */}
-                    <div className="md:col-span-7 flex items-start gap-0 group-hover:gap-6 transition-all duration-500">
-                      {/* Image - visible on hover */}
+                    <div className="md:col-span-7 flex items-start gap-3 md:gap-0 md:group-hover:gap-6 transition-all duration-500">
                       <div className="hidden md:block overflow-hidden w-0 group-hover:w-32 lg:group-hover:w-40 transition-all duration-500 flex-shrink-0">
                         <div className="w-32 h-24 lg:w-40 lg:h-28 rounded-lg bg-gradient-to-br from-[#5919C1] to-[#7B3FF2] overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                           <img
@@ -816,22 +989,61 @@ export default function DigitalMarketingPage() {
                       </div>
 
                       {/* Content Container - Number, Title & Description */}
-                      <div className="flex-1 min-w-0 flex items-start gap-3 md:gap-4 transition-all duration-500">
-                        {/* Number */}
-                        <span className="text-sm md:text-base font-light text-white group-hover:text-[#7B3FF2] transition-colors duration-300 flex-shrink-0 pt-1">
+                      <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-start gap-2 md:gap-4 transition-all duration-500">
+                        {/* Mobile Layout - Image left, Number + Title + Description right */}
+                        <div className="md:hidden flex items-start gap-3 flex-1 min-w-0">
+                          {/* Image - small square */}
+                          <div className={`overflow-hidden flex-shrink-0 transition-all duration-500 ${
+                            isExpanded ? 'w-14 opacity-100' : 'w-0 opacity-0'
+                          }`}>
+                            <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-[#5919C1] to-[#7B3FF2] overflow-hidden">
+                              <img
+                                src={item.image}
+                                alt={item.title}
+                                className="w-14 h-14 object-cover opacity-80"
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Right side - Number, Title, Description */}
+                          <div className="flex-1 min-w-0">
+                            {/* Number & Title */}
+                            <div className="flex items-start gap-3 mb-2">
+                              <span className={`text-sm font-light flex-shrink-0 pt-1 transition-colors duration-300 ${
+                                isExpanded ? 'text-[#7B3FF2]' : 'text-white'
+                              }`}>
+                                {item.number}
+                              </span>
+                              
+                              <h3 className="text-white text-2xl font-normal leading-tight flex-1">
+                                {item.title}
+                              </h3>
+                            </div>
+                            
+                            {/* Description - slides down when expanded, aligned with title */}
+                            <div className={`text-white text-sm overflow-hidden transition-all duration-500 pl-7 ${
+                              isExpanded ? 'opacity-100 max-h-40' : 'opacity-0 max-h-0'
+                            }`}>
+                              {item.description}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Desktop Layout - Original */}
+                        <span className="hidden md:block text-xs md:text-base font-light text-white group-hover:text-[#7B3FF2] transition-colors duration-300 flex-shrink-0 pt-1">
                           {item.number}
                         </span>
 
-                        {/* Title & Description Container */}
-                        <div className="flex-1 min-w-0">
+                        {/* Title & Description Container - Desktop */}
+                        <div className="hidden md:block flex-1 min-w-0">
                           {/* Title */}
-                          <h3 className="text-white text-3xl md:text-4xl lg:text-5xl font-extralight group-hover:text-xl group-hover:md:text-2xl group-hover:lg:text-3xl transition-all duration-500 leading-[1.1] md:leading-[1.1] lg:leading-[1.1] group-hover:leading-normal">
+                          <h3 className="text-white text-xl sm:text-2xl md:text-4xl lg:text-5xl font-extralight md:group-hover:text-xl md:group-hover:md:text-2xl md:group-hover:lg:text-3xl transition-all duration-500 leading-tight md:leading-[1.1] lg:leading-[1.1] md:group-hover:leading-normal">
                             {item.title}
                           </h3>
 
-                          {/* Description - Below Title on Hover */}
+                          {/* Description - Below Title on Hover (desktop) */}
                           <div
-                            className="text-white  text-xl overflow-hidden max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 group-hover:mt-3 transition-all duration-500"
+                            className="text-white text-base sm:text-lg md:text-xl overflow-hidden transition-all duration-500 md:max-h-0 md:opacity-0 md:mt-0 md:group-hover:max-h-40 md:group-hover:opacity-100 md:group-hover:mt-3"
                           >
                             {item.description}
                           </div>
@@ -839,12 +1051,19 @@ export default function DigitalMarketingPage() {
                       </div>
                     </div>
 
-                    {/* Right Side - Arrow and Badges */}
-                    <div className="md:col-span-5 flex flex-col items-start gap-6">
+                    {/* Right Side - Arrow and Badges in same line */}
+                    <div className="md:col-span-5 flex flex-row items-center gap-3 md:gap-6 pl-3 md:pl-0">
+                      {/* Scrolling Badges - narrower width */}
+                      <div className="flex-1 max-w-[calc(100%-60px)] md:max-w-none md:pl-20 lg:pl-24">
+                        <ScrollingBadges badges={item.badges} />
+                      </div>
+
                       {/* Arrow Button */}
-                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-gray-700 flex items-center justify-center group-hover:border-[#7B3FF2] transition-colors duration-300 self-end">
+                      <div className="w-10 h-10 md:w-16 md:h-16 rounded-full border-2 border-gray-700 flex items-center justify-center group-hover:border-[#7B3FF2] transition-colors duration-300 flex-shrink-0">
                         <svg
-                          className="w-5 h-5 md:w-6 md:h-6 text-white  group-hover:text-[#7B3FF2] transition-all duration-300 rotate-90 group-hover:rotate-0"
+                          className={`w-3 h-3 md:w-6 md:h-6 text-white group-hover:text-[#7B3FF2] transition-all duration-300 ${
+                            isExpanded ? 'rotate-0 md:rotate-90 md:group-hover:rotate-0' : 'rotate-90 md:group-hover:rotate-0'
+                          }`}
                           fill="none"
                           stroke="currentColor"
                           strokeWidth={2}
@@ -852,11 +1071,6 @@ export default function DigitalMarketingPage() {
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                         </svg>
-                      </div>
-
-                      {/* Scrolling Badges */}
-                      <div className="w-full pl-16 md:pl-20 lg:pl-24">
-                        <ScrollingBadges badges={item.badges} />
                       </div>
                     </div>
                   </div>
@@ -871,32 +1085,32 @@ export default function DigitalMarketingPage() {
                     transition={{ duration: 0.5, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pt-8 mt-8">
-                      {/* Left Side - Approach (Narrower) */}
-                      <div className="md:col-span-7 space-y-3 pt-8 border-t border-white" style={{ borderTopWidth: '1px', width: 'calc(100% + 6rem)' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 pt-6 md:pt-8 mt-6 md:mt-8">
+                      {/* Left Side - Approach */}
+                      <div className="md:col-span-7 space-y-3 pt-6 md:pt-8 border-t border-white w-full md:w-auto" style={{ borderTopWidth: '1px', width: '100%', maxWidth: window.innerWidth < 768 ? '100%' : 'calc(100% + 6rem)' }}>
                         <div>
-                          <h4 className="text-xl md:text-2xl font-semibold text-[#7B3FF2] mb-2">{item.approach}</h4>
-                          <p className="text-white  text-base md:text-lg leading-relaxed max-w-md">
+                          <h4 className="text-lg md:text-2xl font-semibold text-[#7B3FF2] mb-2">{item.approach}</h4>
+                          <p className="text-white text-sm md:text-lg leading-relaxed max-w-full md:max-w-md">
                             {item.approachDescription}
                           </p>
                         </div>
                       </div>
 
-                      {/* Right Side - Points (Same width as badges, aligned below them) */}
-                      <div className="md:col-span-5 md:col-start-8 pl-0 md:pl-16 lg:pl-24 space-y-8">
-                        <div className="pt-8 border-t border-white inline-block">
+                      {/* Right Side - Points */}
+                      <div className="md:col-span-5 md:col-start-8 pl-0 md:pl-16 lg:pl-24 space-y-6 md:space-y-8">
+                        <div className="pt-6 md:pt-8 border-t border-white inline-block w-full">
                           {item.points.map((point, idx) => (
-                            <div key={point.number} className="space-y-4 pb-10 border-b border-white last:border-b-0 last:pb-0" style={{ marginTop: idx > 0 ? '1rem' : '0' }}>
-                              <h5 className="text-xl md:text-2xl font-light text-white flex items-start justify-between">
-                                <span className="flex items-start gap-2">
+                            <div key={point.number} className="space-y-3 md:space-y-4 pb-6 md:pb-10 border-b border-white last:border-b-0 last:pb-0" style={{ marginTop: idx > 0 ? '1rem' : '0' }}>
+                              <h5 className="text-base md:text-2xl font-light text-white flex items-start justify-between gap-2">
+                                <span className="flex items-start gap-2 flex-1">
                                   <span className="text-[#7B3FF2] font-light"></span>
                                   {point.title}
                                 </span>
-                                <span className="text-sm text-gray-800">[{point.number}]</span>
+                                <span className="text-xs md:text-sm text-gray-800 flex-shrink-0">[{point.number}]</span>
                               </h5>
                               <div className="flex flex-wrap gap-2 pl-0">
                                 {point.description.split('.').filter(d => d.trim()).map((desc, idx) => (
-                                  <span key={idx} className="text-white text-sm md:text-md">
+                                  <span key={idx} className="text-white text-xs md:text-md">
                                     <span className="text-[#7B3FF2] mr-1">|</span>
                                     {desc.trim()}
                                   </span>
