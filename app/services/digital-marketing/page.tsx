@@ -970,7 +970,7 @@ export default function DigitalMarketingPage() {
                   onMouseEnter={() => !allExpanded && !isScrolling && setExpandedIndex(index)}
                   onClick={() => {
                     // Mobile click to expand - only one item at a time
-                    if (window.innerWidth < 768) {
+                    if (isMobile) {
                       setExpandedIndex(isExpanded && index === expandedIndex ? -1 : index);
                     }
                   }}
