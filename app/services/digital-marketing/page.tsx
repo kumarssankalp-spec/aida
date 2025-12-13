@@ -1087,7 +1087,7 @@ export default function DigitalMarketingPage() {
                   >
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 pt-6 md:pt-8 mt-6 md:mt-8">
                       {/* Left Side - Approach */}
-                      <div className="md:col-span-7 space-y-3 pt-6 md:pt-8 border-t border-white w-full md:w-auto" style={{ borderTopWidth: '1px', width: '100%', maxWidth: window.innerWidth < 768 ? '100%' : 'calc(100% + 6rem)' }}>
+                      <div className="md:col-span-7 space-y-3 pt-6 md:pt-8 border-t border-white w-full md:w-auto md:max-w-[calc(100%+6rem)]">
                         <div>
                           <h4 className="text-lg md:text-2xl font-semibold text-[#7B3FF2] mb-2">{item.approach}</h4>
                           <p className="text-white text-sm md:text-lg leading-relaxed max-w-full md:max-w-md">
