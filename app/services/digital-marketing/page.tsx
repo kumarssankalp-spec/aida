@@ -710,13 +710,13 @@ export default function DigitalMarketingPage() {
             overflow: 'visible',
             zIndex: 1
           }}
-          className="flex items-center justify-center px-[13%]"
+          className="flex items-center justify-center px-6 sm:px-8 md:px-[10%] lg:px-[13%]"
         >
           <motion.div
             style={{ scale: textScale }}
             className="text-center w-full font-normal leading-none"
           >
-            <h2 style={{ fontSize: "85px" }}>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[85px]">
               Precision data.<br />
               Powerful creative.<br />
               Real growth.
@@ -921,16 +921,78 @@ export default function DigitalMarketingPage() {
       {/* Aida Corporation Means Section */}
       <div
         ref={meansContainerRef}
-        className={isScrolling ? 'pointer-events-none' : ''}
-        style={{ position: 'relative', height: '300vh', backgroundColor: 'white' }}
+        className={`relative bg-white ${isScrolling ? 'pointer-events-none' : ''} md:h-[300vh]`}
       >
+        {/* Mobile: Static layout */}
+        <section className="md:hidden py-12 px-6">
+          <div className="container mx-auto max-w-[1400px]">
+            {/* Title */}
+            <h2 className="text-4xl sm:text-5xl font-normal text-black mb-8">
+              How We Work:
+            </h2>
+
+            {/* Divider below title */}
+            <div className="h-[1px] bg-black/20 mb-8 w-full" />
+
+            {/* Static Items Container - Text with overlapping circles */}
+            <div className="space-y-6 relative">
+              {/* Overlapping Circles - positioned at top left of first text */}
+              <div className="absolute left-0 top-0 h-10">
+                <div className="absolute left-0 w-10 h-10 rounded-full bg-[#5919C1] opacity-100 z-40" />
+                <div className="absolute left-6 w-10 h-10 rounded-full bg-[#5919C1] opacity-75 z-30" />
+                <div className="absolute left-12 w-10 h-10 rounded-full bg-[#5919C1] opacity-50 z-20" />
+                <div className="absolute left-18 w-10 h-10 rounded-full bg-[#5919C1] opacity-30 z-10" />
+              </div>
+
+              {/* Item 1 - You book a free call */}
+              <div className="flex flex-col items-start pl-32">
+                <h3 className="text-xl font-normal text-black">You book a free call</h3>
+                <div className="h-[1px] bg-black/20 mt-3 w-full" />
+              </div>
+
+              {/* Item 2 - We audit everything */}
+              <div className="flex flex-col items-start pl-32">
+                <h3 className="text-xl font-normal text-black">We audit everything</h3>
+                <div className="h-[1px] bg-black/20 mt-3 w-full" />
+              </div>
+
+              {/* Item 3 - Get custom growth acceleration plan */}
+              <div className="flex flex-col items-start pl-32">
+                <h3 className="text-xl font-normal text-black">Get custom growth acceleration plan</h3>
+                <div className="h-[1px] bg-black/20 mt-3 w-full" />
+              </div>
+
+              {/* Item 4 - You scale, fast. with Button */}
+              <div className="flex flex-col items-start gap-4 pl-32">
+                <h3 className="text-xl font-normal text-black">You scale, fast.</h3>
+                <a
+                  href="#cta-section"
+                  className="group flex items-center gap-3 bg-[#5919C1] text-white text-sm font-light transition-all hover:bg-white hover:border-2 hover:border-black hover:text-black rounded-full pl-5 pr-8 py-2.5"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleScrollToCTA();
+                  }}
+                >
+                  <div className="w-6 h-6 rounded-full bg-[#5919C1] group-hover:bg-white border-2 border-white group-hover:border-black flex items-center justify-center transition-all">
+                    <svg className="w-3 h-3 text-white group-hover:text-black transition-all group-hover:-rotate-270" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </div>
+                  <span>Book Now</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Desktop: Sticky section with animations */}
         <section
-          className={`py-12 sm:py-16 md:py-20 pb-24 sm:pb-32 md:pb-40 lg:pb-48 px-4 sm:px-6 bg-white ${isScrolling ? 'pointer-events-none' : ''}`}
+          className={`hidden md:block py-12 sm:py-16 md:py-20 pb-24 sm:pb-32 md:pb-40 lg:pb-48 px-4 sm:px-6 bg-white ${isScrolling ? 'pointer-events-none' : ''}`}
           style={{ position: 'sticky', top: 0, zIndex: 5 }}
         >
           <div className="container mx-auto max-w-[1400px]">
             <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal text-black mb-8 sm:mb-12 md:mb-16 pl-0 sm:pl-4 md:pl-8">
-              How We Work
+              How We Work:
             </h2>
             <div className="h-[1px] bg-black/20 mb-8 sm:mb-12 md:mb-16 pl-0 sm:pl-4 md:pl-8 w-full" />
             <div className="space-y-4 sm:space-y-5 md:space-y-6 relative">
