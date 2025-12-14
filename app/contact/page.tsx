@@ -210,13 +210,43 @@ export default function ContactPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.8 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={(!isSubmitting && formData.name && formData.email && formData.message) ? { scale: 1.02 } : {}}
+                    whileTap={(!isSubmitting && formData.name && formData.email && formData.message) ? { scale: 0.98 } : {}}
                     type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-[#5919C1] text-white px-8 py-4 rounded-md text-lg font-semibold hover:bg-[#4a14a0] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg mt-5"
+                    disabled={isSubmitting || !formData.name || !formData.email || !formData.message}
+                    className={`group relative w-full px-8 py-4 rounded-md text-lg font-semibold transition-all duration-300 shadow-lg mt-5 flex items-center justify-center gap-3 ${
+                      isSubmitting
+                        ? 'bg-[#5919C1] text-white cursor-wait'
+                        : !formData.name || !formData.email || !formData.message
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#5919C1] text-white hover:bg-[#4a14a0]'
+                    }`}
                   >
-                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                    <span className="relative z-10 flex items-end gap-2">
+                      {isSubmitting 
+                        ? (
+                          <>
+                            <span>Submitting</span>
+                            <span className="inline-flex gap-0.5 pb-1">
+                              <span className="w-1.5 h-1.5 bg-white rounded-full animate-[wave_1.2s_infinite_ease-in-out]"></span>
+                              <span className="w-1.5 h-1.5 bg-white rounded-full animate-[wave_1.2s_infinite_ease-in-out] [animation-delay:0.2s]"></span>
+                              <span className="w-1.5 h-1.5 bg-white rounded-full animate-[wave_1.2s_infinite_ease-in-out] [animation-delay:0.4s]"></span>
+                            </span>
+                          </>
+                        )
+                        : 'Submit'}
+                    </span>
+                    {!isSubmitting && formData.name && formData.email && formData.message && (
+                      <svg
+                        className="relative z-10 w-6 h-6 transition-all duration-500 rotate-45 group-hover:rotate-[330deg] group-hover:translate-x-1"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    )}
                   </motion.button>
                 </div>
               </form>
