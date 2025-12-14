@@ -96,6 +96,23 @@ export default function Home() {
   const box4Y = useTransform(videoProgress, [0.45, 0.65, 0.7, 0.95], [0, 0, 0, 700]); // Move from 40% to 10% (box1 position), then down
   const box4Opacity = useTransform(videoProgress, [0.45, 0.6], [0, 1]); // Only fade in
 
+  // Mobile video cards scroll animations - smoother with extended ranges
+  const mobileCard1X = useTransform(videoProgress, [0, 0.2], [100, 0]);
+  const mobileCard1Rotate = useTransform(videoProgress, [0, 0.2], [15, 0]);
+  const mobileCard1Opacity = useTransform(videoProgress, [0, 0.15], [0, 1]);
+
+  const mobileCard2X = useTransform(videoProgress, [0.1, 0.35], [100, 0]);
+  const mobileCard2Rotate = useTransform(videoProgress, [0.1, 0.35], [15, 0]);
+  const mobileCard2Opacity = useTransform(videoProgress, [0.1, 0.3], [0, 1]);
+
+  const mobileCard3X = useTransform(videoProgress, [0.25, 0.5], [100, 0]);
+  const mobileCard3Rotate = useTransform(videoProgress, [0.25, 0.5], [15, 0]);
+  const mobileCard3Opacity = useTransform(videoProgress, [0.25, 0.45], [0, 1]);
+
+  const mobileCard4X = useTransform(videoProgress, [0.4, 0.65], [100, 0]);
+  const mobileCard4Rotate = useTransform(videoProgress, [0.4, 0.65], [15, 0]);
+  const mobileCard4Opacity = useTransform(videoProgress, [0.4, 0.6], [0, 1]);
+
   // Aida Corporation Means section animations
   const meansContainerRef = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress: meansProgress } = useScroll({
@@ -293,7 +310,7 @@ export default function Home() {
             {/* Layer 2: Design Image - animated */}
             <motion.div
               style={{ x: designImageX, y: designImageY }}
-              className="absolute -bottom-25 md:-bottom-1 left-1/2 -translate-x-1/2 w-[85%] sm:w-[70%] md:w-[60%] lg:w-[50%] max-w-[900px] px-4 sm:px-6 z-2"
+              className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 w-[85%] sm:w-[75%] md:w-[65%] lg:w-[55%] max-w-[950px] px-4 sm:px-6 z-2"
             >
               <div className="bg-white/40 backdrop-blur-md rounded-3xl p-2 sm:p-3 shadow-xl border border-white/30">
                 <Image
@@ -353,17 +370,19 @@ export default function Home() {
       {/* Sticky Section with Scaling Text */}
       <div
         ref={containerRef}
-        className="relative bg-white md:h-screen"
+        className="relative bg-white md:h-screen h-[200vh]"
       >
-        {/* Mobile: Plain static text, no animations - minimal height */}
-        <section className="md:hidden flex items-center justify-center px-6 py-12">
-          <div className="text-center w-full font-normal leading-tight">
+        {/* Mobile: Scaling text animation */}
+        <section className="md:hidden flex items-center justify-center px-6 py-12 sticky top-[20%]">
+          <motion.div 
+            style={{ scale: textScale }}
+            className="text-center w-full font-normal leading-tight">
             <h2 className="text-4xl sm:text-5xl">
               Integrated Solutions<br />
               for an Intelligent<br />
               Enterprise
             </h2>
-          </div>
+          </motion.div>
         </section>
 
         {/* Desktop: Sticky section with scaling animation */}
@@ -393,12 +412,12 @@ export default function Home() {
       {/* New Video Section */}
       <div
         ref={videoContainerRef}
-        className="relative bg-white md:h-[300vh]"
+        className="relative bg-white md:h-[300vh] h-[400vh]"
       >
-        {/* Mobile: Static cards vertically stacked */}
-        <section className="md:hidden relative px-6 py-10">
-          <div className="container mx-auto max-w-[1400px]">
-            <div className="relative rounded-[3rem] overflow-hidden border border-white bg-white shadow-2xl min-h-[1400px]">
+        {/* Mobile: Scroll-animated cards */}
+        <section className="md:hidden relative px-6 py-10 h-[400vh]">
+          <div className="container mx-auto max-w-[1400px] sticky top-20">
+            <div className="relative rounded-[3rem] overflow-hidden border border-white bg-white shadow-2xl min-h-[600px]">
               <video
                 autoPlay
                 loop
@@ -412,7 +431,13 @@ export default function Home() {
               {/* Static Cards - Vertically Stacked on Mobile */}
               <div className="relative flex flex-col gap-6 p-6 py-8">
                 {/* Card 1 - Big Data & Analytics */}
-                <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl p-3  shadow-2xl border border-white/50">
+                <motion.div 
+                  style={{ 
+                    x: mobileCard1X, 
+                    rotate: mobileCard1Rotate, 
+                    opacity: mobileCard1Opacity 
+                  }}
+                  className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl p-3  shadow-2xl border border-white/50">
                   <h3 className="text-xl font-normal mb-10 text-black">Big Data & Analytics</h3>
                   <div className="flex gap-4">
                     <div className="relative w-20 h-20 rounded-md overflow-hidden flex items-center justify-center shrink-0">
@@ -430,10 +455,16 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Card 2 - Artificial Intelligence */}
-                <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl p-3  shadow-2xl border border-white/50">
+                <motion.div 
+                  style={{ 
+                    x: mobileCard2X, 
+                    rotate: mobileCard2Rotate, 
+                    opacity: mobileCard2Opacity 
+                  }}
+                  className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl p-3  shadow-2xl border border-white/50">
                   <h3 className="text-xl font-normal mb-10 text-black">Artificial Intelligence</h3>
                   <div className="flex gap-4">
                     <div className="relative w-20 h-20 rounded-md overflow-hidden flex items-center justify-center shrink-0">
@@ -451,10 +482,16 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Card 3 - Technology Solutions */}
-                <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl p-3  shadow-2xl border border-white/50">
+                <motion.div 
+                  style={{ 
+                    x: mobileCard3X, 
+                    rotate: mobileCard3Rotate, 
+                    opacity: mobileCard3Opacity 
+                  }}
+                  className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl p-3  shadow-2xl border border-white/50">
                   <h3 className="text-xl font-normal mb-10 text-black">Technology Solutions</h3>
                   <div className="flex gap-4">
                     <div className="relative w-20 h-20 rounded-md overflow-hidden flex items-center justify-center shrink-0">
@@ -473,10 +510,16 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Card 4 - Digital Marketing */}
-                <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl p-3  shadow-2xl border border-white/50">
+                <motion.div 
+                  style={{ 
+                    x: mobileCard4X, 
+                    rotate: mobileCard4Rotate, 
+                    opacity: mobileCard4Opacity 
+                  }}
+                  className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl p-3  shadow-2xl border border-white/50">
                   <h3 className="text-xl font-normal mb-10 text-black">Digital Marketing</h3>
                   <div className="flex gap-4">
                     <div className="relative w-20 h-20 rounded-md overflow-hidden flex items-center justify-center shrink-0">
@@ -495,7 +538,7 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>
@@ -703,60 +746,131 @@ export default function Home() {
         ref={meansContainerRef}
         className="relative bg-[#F2F2F2] md:h-[300vh]"
       >
-        {/* Mobile: Static layout */}
+        {/* Mobile: Animated layout */}
         <section className="md:hidden py-12 px-6">
           <div className="container mx-auto max-w-[1400px]">
             {/* Title */}
-            <h2 className="text-4xl sm:text-5xl font-normal text-black mb-8">
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-4xl sm:text-5xl font-normal text-black mb-8">
               Aida Corporation Means:
-            </h2>
+            </motion.h2>
 
             {/* Divider below title */}
-            <div className="h-[1px] bg-black/20 mb-8 w-full" />
+            <motion.div 
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="h-[1px] bg-black/20 mb-8 w-full origin-left" />
 
-            {/* Static Items Container - Text with overlapping circles */}
+            {/* Animated Items Container - Text with overlapping circles */}
             <div className="space-y-6 relative">
               {/* Overlapping Circles - positioned at top left of first text */}
-              <div className="absolute left-0 top-0 h-10">
-                <div className="absolute left-0 w-10 h-10 rounded-full bg-[#5919C1] opacity-100 z-40" />
-                <div className="absolute left-6 w-10 h-10 rounded-full bg-[#5919C1] opacity-75 z-30" />
-                <div className="absolute left-12 w-10 h-10 rounded-full bg-[#5919C1] opacity-50 z-20" />
-                <div className="absolute left-18 w-10 h-10 rounded-full bg-[#5919C1] opacity-30 z-10" />
+              <div className="absolute left-0 top-0 h-10 z-50">
+                <motion.div 
+                  initial={{ scale: 0, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ type: "spring", duration: 0.6, delay: 0.3 }}
+                  className="absolute left-0 w-10 h-10 rounded-full bg-[#5919C1] z-40" />
+                <motion.div 
+                  initial={{ scale: 0, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 0.75 }}
+                  viewport={{ once: true }}
+                  transition={{ type: "spring", duration: 0.6, delay: 0.4 }}
+                  className="absolute left-6 w-10 h-10 rounded-full bg-[#5919C1] z-30" />
+                <motion.div 
+                  initial={{ scale: 0, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 0.5 }}
+                  viewport={{ once: true }}
+                  transition={{ type: "spring", duration: 0.6, delay: 0.5 }}
+                  className="absolute left-12 w-10 h-10 rounded-full bg-[#5919C1] z-20" />
+                <motion.div 
+                  initial={{ scale: 0, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 0.3 }}
+                  viewport={{ once: true }}
+                  transition={{ type: "spring", duration: 0.6, delay: 0.6 }}
+                  className="absolute left-18 w-10 h-10 rounded-full bg-[#5919C1] z-10" />
               </div>
 
               {/* Item 1 - Intelligent Efficiency */}
-              <div className="flex flex-col items-start pl-32">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="flex flex-col items-start pl-32">
                 <h3 className="text-xl font-normal text-black">Intelligent Efficiency</h3>
-                <div className="h-[1px] bg-black/20 mt-3 w-full" />
-              </div>
+                <motion.div 
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.8 }}
+                  className="h-[1px] bg-black/20 mt-3 w-full origin-left" />
+              </motion.div>
 
               {/* Item 2 - Uncompromised Data Security */}
-              <div className="flex flex-col items-start pl-32">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.9 }}
+                className="flex flex-col items-start pl-32">
                 <h3 className="text-xl font-normal text-black">Uncompromised Data Security</h3>
-                <div className="h-[1px] bg-black/20 mt-3 w-full" />
-              </div>
+                <motion.div 
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 1.0 }}
+                  className="h-[1px] bg-black/20 mt-3 w-full origin-left" />
+              </motion.div>
 
               {/* Item 3 - Predictable Growth */}
-              <div className="flex flex-col items-start pl-32">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 1.1 }}
+                className="flex flex-col items-start pl-32">
                 <h3 className="text-xl font-normal text-black">Predictable Growth</h3>
-                <div className="h-[1px] bg-black/20 mt-3 w-full" />
-              </div>
+                <motion.div 
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 1.2 }}
+                  className="h-[1px] bg-black/20 mt-3 w-full origin-left" />
+              </motion.div>
 
               {/* Item 4 - Enduring Transformation with Button */}
-              <div className="flex flex-col items-start gap-4 pl-32">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 1.3 }}
+                className="flex flex-col items-start gap-4 pl-32">
                 <h3 className="text-xl font-normal text-black">Enduring Transformation</h3>
-                <Link
-                  href="/get-started"
-                  className="group flex items-center gap-3 bg-[#5919C1] text-white text-sm font-light transition-all hover:bg-[#F2F2F2] hover:border-2 hover:border-black hover:text-black rounded-full pl-5 pr-8 py-2.5"
-                >
-                  <div className="w-6 h-6 rounded-full bg-[#5919C1] group-hover:bg-[#F2F2F2] border-2 border-white group-hover:border-black flex items-center justify-center transition-all">
-                    <svg className="w-3 h-3 text-white group-hover:text-black transition-all group-hover:-rotate-270" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </div>
-                  <span>Get Started</span>
-                </Link>
-              </div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 1.5 }}>
+                  <Link
+                    href="/get-started"
+                    className="group flex items-center gap-3 bg-[#5919C1] text-white text-sm font-light transition-all hover:bg-[#F2F2F2] hover:border-2 hover:border-black hover:text-black rounded-full pl-5 pr-8 py-2.5"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-[#5919C1] group-hover:bg-[#F2F2F2] border-2 border-white group-hover:border-black flex items-center justify-center transition-all">
+                      <svg className="w-3 h-3 text-white group-hover:text-black transition-all group-hover:-rotate-270" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </div>
+                    <span>Get Started</span>
+                  </Link>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
         </section>
