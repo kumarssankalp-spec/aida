@@ -119,104 +119,106 @@ export default function ContactPage() {
                 </motion.div>
               )}
 
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="flex flex-col"
-              >
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  placeholder="Name *"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-4 border-t-2 border-[#DCDCDC] text-[#000000] transition-all duration-300 placeholder:text-[#6E6E6E] "
-                />
-
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="Email Address *"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-4 border-t-2 border-[#DCDCDC] text-[#000000] transition-all duration-300 placeholder:text-[#6E6E6E] "
-                />
-
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  placeholder="Phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-4 border-t-2 border-[#DCDCDC] text-[#000000] transition-all duration-300 placeholder:text-[#6E6E6E] "
-                />
-
-                <textarea
-                  id="message"
-                  name="message"
-                  placeholder="How can we help you? *"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  className="w-full h-48 px-4 py-4 border-2 border-[#DCDCDC] text-[#000000] transition-all duration-300 resize-none placeholder:text-[#6E6E6E] "
-                ></textarea>
-              </motion.div>
-
-              <form onSubmit={handleSubmit} className="flex flex-col mt-5 px-2 lg:px-6 md:px-4">
+              <form onSubmit={handleSubmit} className="flex flex-col">
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 0.6 }}
-                  className="flex items-start gap-3"
-                >
-                  <p className="text-sm text-[#000000]">
-                    By submitting, I agree to{' '}
-                    <a href="/legal/privacy-policy" className="text-[#5919C1] hover:underline transition">
-                      Privacy Policy
-                    </a>
-                    {' '}and{' '}
-                    <a href="/legal/terms-conditions" className="text-[#5919C1] hover:underline transition">
-                      Terms & Conditions
-                    </a>
-                  </p>
-                </motion.div>
-
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 0.7 }}
-                  className="flex items-start gap-3 mt-4"
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="flex flex-col"
                 >
                   <input
-                    type="checkbox"
-                    id="newsletter"
-                    checked={newsletter}
-                    onChange={(e) => setNewsletter(e.target.checked)}
-                    className="mt-1 w-5 h-5 accent-[#5919C1] cursor-pointer shrink-0 transition-transform hover:scale-110"
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Name *"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-4 border-t-2 border-[#DCDCDC] text-[#000000] transition-all duration-300 placeholder:text-[#6E6E6E] "
                   />
-                  <label htmlFor="newsletter" className="text-sm text-[#000000] cursor-pointer">
-                    Subscribe to our newsletter for latest updates and offers
-                  </label>
+
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Email Address *"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-4 border-t-2 border-[#DCDCDC] text-[#000000] transition-all duration-300 placeholder:text-[#6E6E6E] "
+                  />
+
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="Phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-4 border-t-2 border-[#DCDCDC] text-[#000000] transition-all duration-300 placeholder:text-[#6E6E6E] "
+                  />
+
+                  <textarea
+                    id="message"
+                    name="message"
+                    placeholder="How can we help you? *"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    className="w-full h-48 px-4 py-4 border-2 border-[#DCDCDC] text-[#000000] transition-all duration-300 resize-none placeholder:text-[#6E6E6E] "
+                  ></textarea>
                 </motion.div>
 
-                <motion.button
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.8 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-[#5919C1] text-white px-8 py-4 rounded-md text-lg font-semibold hover:bg-[#4a14a0] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg mt-5"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit'}
-                </motion.button>
+                <div className="flex flex-col mt-5 px-2 lg:px-6 md:px-4">
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.6 }}
+                    className="flex items-start gap-3"
+                  >
+                    <p className="text-sm text-[#000000]">
+                      By submitting, I agree to{' '}
+                      <a href="/legal/privacy-policy" className="text-[#5919C1] hover:underline transition">
+                        Privacy Policy
+                      </a>
+                      {' '}and{' '}
+                      <a href="/legal/terms-conditions" className="text-[#5919C1] hover:underline transition">
+                        Terms & Conditions
+                      </a>
+                    </p>
+                  </motion.div>
+
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.7 }}
+                    className="flex items-start gap-3 mt-4"
+                  >
+                    <input
+                      type="checkbox"
+                      id="newsletter"
+                      checked={newsletter}
+                      onChange={(e) => setNewsletter(e.target.checked)}
+                      className="mt-1 w-5 h-5 accent-[#5919C1] cursor-pointer shrink-0 transition-transform hover:scale-110"
+                    />
+                    <label htmlFor="newsletter" className="text-sm text-[#000000] cursor-pointer">
+                      Subscribe to our newsletter for latest updates and offers
+                    </label>
+                  </motion.div>
+
+                  <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.8 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-[#5919C1] text-white px-8 py-4 rounded-md text-lg font-semibold hover:bg-[#4a14a0] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg mt-5"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                  </motion.button>
+                </div>
               </form>
             </motion.div>
           </div>
