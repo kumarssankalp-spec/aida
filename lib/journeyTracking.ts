@@ -187,7 +187,9 @@ const getFirstVisitDate = async (email?: string): Promise<string> => {
       
       if (!error && data && data.length > 0 && data[0].first_visit_date) {
         firstVisit = data[0].first_visit_date;
-        localStorage.setItem(FIRST_VISIT_KEY, firstVisit);
+        if (firstVisit) {
+          localStorage.setItem(FIRST_VISIT_KEY, firstVisit);
+        }
       }
     } catch (error) {
       console.error('Error checking first visit date:', error);
