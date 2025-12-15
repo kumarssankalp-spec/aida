@@ -743,7 +743,6 @@ export const autoSaveReturningUserJourney = async (): Promise<void> => {
       bounce_rate: bounceRate,
       pages_per_session: pagesPerSession,
       avg_time_per_page: avgTimePerPage,
-      total_time_on_pages: totalTimeOnPages,
       submission_type: null, // Auto-save, not a form submission
       newsletter_subscribed: false,
       contact_form_submitted: false,
