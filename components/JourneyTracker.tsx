@@ -32,7 +32,9 @@ export default function JourneyTracker() {
     
     // Cleanup
     return () => {
-      cleanup();
+      if (cleanup) {
+        cleanup();
+      }
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
