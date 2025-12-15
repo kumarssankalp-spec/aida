@@ -167,8 +167,8 @@ export const sendNewsletterSubscription = async (data: NewsletterData): Promise<
       await saveJourneyToSupabase({
         sessionId: journey.sessionId,
         email: data.email,
-        name: null, // Newsletter doesn't collect name
-        phone: null, // Newsletter doesn't collect phone
+        name: undefined, // Newsletter doesn't collect name
+        phone: undefined, // Newsletter doesn't collect phone
         submissionType: 'newsletter',
         journey
       });
