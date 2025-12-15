@@ -344,7 +344,7 @@ export default function Home() {
                 <div className="absolute top-0 left-0 pl-6 pr-8 py-3 pointer-events-auto">
                   <Link
                     href="/get-started"
-                    className="group flex items-center gap-3 bg-[#5919C1] text-white text-lg font-light transition-all hover:bg-white hover:border-2 hover:border-black hover:text-black rounded-full pl-6 pr-10 py-3"
+                    className="group flex items-center gap-3 bg-[#5919C1] text-white text-lg font-light transition-all hover:bg-white hover:border-1 hover:border-black hover:text-black rounded-full pl-6 pr-10 py-3"
                   >
                     {/* Arrow with Circle */}
                     <div className="w-8 h-8 rounded-full bg-[#5919C1] group-hover:bg-white  border-2 border-white group-hover:border-black flex items-center justify-center transition-all">

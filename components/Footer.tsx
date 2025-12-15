@@ -153,9 +153,56 @@ export default function Footer({ className = '', id }: FooterProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting || !isSubscribed}
-                  className="bg-[#5919C1] text-white px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-medium hover:bg-[#4a14a0] transition whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`group relative px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-medium flex items-center gap-2 sm:gap-3 transition-all duration-300 overflow-hidden whitespace-nowrap ${
+                    submitStatus === 'error'
+                      ? 'bg-red-500 text-white border-2 border-red-500'
+                      : isSubmitting
+                      ? 'border-2 border-[#5919C1] text-[#5919C1] cursor-wait'
+                      : !isSubscribed
+                      ? 'bg-[#5919C1]/40 text-white cursor-not-allowed'
+                      : 'bg-[#5919C1] text-white hover:bg-[#4a14a0]'
+                  }`}
+                  style={{
+                    transform: !isSubmitting && isSubscribed && submitStatus !== 'error' ? 'scale(1)' : undefined,
+                    transition: 'transform 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSubmitting && isSubscribed && submitStatus !== 'error') {
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  onMouseDown={(e) => {
+                    if (!isSubmitting && isSubscribed && submitStatus !== 'error') {
+                      e.currentTarget.style.transform = 'scale(0.95)';
+                    }
+                  }}
+                  onMouseUp={(e) => {
+                    if (!isSubmitting && isSubscribed && submitStatus !== 'error') {
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                    }
+                  }}
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit'}
+                  <span className="relative z-10 flex items-end gap-2">
+                    {isSubmitting 
+                      ? (
+                        <>
+                          <span>Submitting</span>
+                          <span className="inline-flex gap-0.5 pb-1">
+                            <span className="w-1.5 h-1.5 bg-[#5919C1]  rounded-full animate-[wave_1.2s_infinite_ease-in-out]"></span>
+                            <span className="w-1.5 h-1.5 bg-[#5919C1]  rounded-full animate-[wave_1.2s_infinite_ease-in-out] [animation-delay:0.2s]"></span>
+                            <span className="w-1.5 h-1.5 bg-[#5919C1]  rounded-full animate-[wave_1.2s_infinite_ease-in-out] [animation-delay:0.4s]"></span>
+                          </span>
+                        </>
+                      )
+                      : submitStatus === 'error'
+                      ? "Try Again"
+                      : submitStatus === 'success' 
+                      ? "Submitted"
+                      : 'Submit'}
+                  </span>
                 </button>
               </div>
 

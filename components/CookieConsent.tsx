@@ -10,9 +10,9 @@ export default function CookieConsent() {
     const consent = localStorage.getItem('cookieConsent');
     if (!consent) {
       setShowBanner(true);
-    } else if (consent === 'accepted') {
-      initializeTracking();
     }
+    // Always initialize tracking regardless of choice
+    initializeTracking();
   }, []);
 
   const initializeTracking = () => {
@@ -27,7 +27,7 @@ export default function CookieConsent() {
   const acceptCookies = () => {
     localStorage.setItem('cookieConsent', 'accepted');
     setShowBanner(false);
-    initializeTracking();
+    // Tracking already initialized
   };
 
   const declineCookies = () => {

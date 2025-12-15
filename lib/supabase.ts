@@ -20,41 +20,59 @@ export interface NewsletterSubscriber {
 
 export interface LeadSubmission {
   sessionId: string;
+  userId?: string;
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
   company?: string;
-  services: string[];
+  services: string[] | string;
   message?: string;
   sourcePage?: string;
+  sourceUrl?: string;
   referrerUrl?: string;
+  country?: string;
+  city?: string;
+  region?: string;
+  postalCode?: string;
+  timezone?: string;
+  latitude?: number;
+  longitude?: number;
+  ipAddress?: string;
+  deviceType?: string;
+  browser?: string;
+  browserVersion?: string;
+  os?: string;
+  osVersion?: string;
+  screenResolution?: string;
+  isMobile?: boolean;
+  isTablet?: boolean;
+  language?: string;
+  locale?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
   emailSent?: boolean;
 }
 
 // Save lead submission
 export const saveLeadSubmission = async (data: LeadSubmission): Promise<boolean> => {
   try {
-    const { data: result, error } = await supabase
-      .from('lead_submissions')
-      .insert([{
-        session_id: data.sessionId,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        company: data.company || null,
-        services: data.services,
-        message: data.message || null,
-        source_page: data.sourcePage || null,
-        referrer_url: data.referrerUrl || null,
-        email_sent: data.emailSent || false,
-        submitted_at: new Date().toISOString()
-      }])
-      .select();
+    // Call server-side API route which uses service role key (bypasses RLS)
+    const response = await fetch('/api/lead', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
 
-    if (error) {
-      console.error('Failed to save lead submission:', error.message);
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      console.error('Failed to save lead submission:', result.error);
       return false;
     }
 

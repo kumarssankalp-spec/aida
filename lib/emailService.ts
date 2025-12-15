@@ -75,7 +75,7 @@ export const sendContactForm = async (data: ContactFormData): Promise<boolean> =
 
     // THEN save lead submission (references session_id from user_journeys)
     if (data.isLeadForm && journey && data.firstName && data.lastName && data.services) {
-      console.log('💾 Saving to lead_submissions:', {
+      console.log('💾 Saving to lead_data:', {
         sessionId: journey.sessionId,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -84,6 +84,7 @@ export const sendContactForm = async (data: ContactFormData): Promise<boolean> =
       
       const leadSaved = await saveLeadSubmission({
         sessionId: journey.sessionId,
+        userId: journey.userId,
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -92,7 +93,31 @@ export const sendContactForm = async (data: ContactFormData): Promise<boolean> =
         services: data.services,
         message: data.message,
         sourcePage: data.sourcePage,
+        sourceUrl: typeof window !== 'undefined' ? window.location.href : undefined,
         referrerUrl: data.referrerUrl,
+        country: journey.country,
+        city: journey.city,
+        region: journey.region,
+        postalCode: journey.postalCode,
+        timezone: journey.timezone,
+        latitude: journey.latitude,
+        longitude: journey.longitude,
+        ipAddress: journey.ipAddress,
+        deviceType: journey.deviceType,
+        browser: journey.browser,
+        browserVersion: journey.browserVersion,
+        os: journey.os,
+        osVersion: journey.osVersion,
+        screenResolution: journey.screenResolution,
+        isMobile: journey.isMobile,
+        isTablet: journey.isTablet,
+        language: journey.language,
+        locale: journey.locale,
+        utmSource: journey.utmSource,
+        utmMedium: journey.utmMedium,
+        utmCampaign: journey.utmCampaign,
+        utmTerm: journey.utmTerm,
+        utmContent: journey.utmContent,
         emailSent: emailSent
       });
       
@@ -136,14 +161,19 @@ export const sendNewsletterSubscription = async (data: NewsletterData): Promise<
     });
 
     // Get current journey and save to user_journeys table
+    // NOTE: saveJourneyToSupabase will re-initialize journey with email to check database
     const journey = getJourney();
     if (journey) {
       await saveJourneyToSupabase({
         sessionId: journey.sessionId,
         email: data.email,
+        name: null, // Newsletter doesn't collect name
+        phone: null, // Newsletter doesn't collect phone
         submissionType: 'newsletter',
         journey
       });
+    } else {
+      console.warn('No journey found for newsletter subscription');
     }
 
     return true;

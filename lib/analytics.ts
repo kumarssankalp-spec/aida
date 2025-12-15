@@ -31,12 +31,9 @@ class Analytics {
   public initialize(): void {
     if (this.isInitialized) return;
 
-    const consent = this.getConsentStatus();
-    
-    if (consent === 'accepted') {
-      this.loadTrackingScripts();
-      this.isInitialized = true;
-    }
+    // Always initialize tracking regardless of consent status
+    this.loadTrackingScripts();
+    this.isInitialized = true;
   }
 
   // Load tracking scripts (Google Analytics, Facebook Pixel, etc.)

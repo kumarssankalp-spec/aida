@@ -178,7 +178,7 @@ export default function AIPage() {
   return (
     <div className="relative min-h-screen bg-white">
       {/* Hero Section with Video Background */}
-      <section className="relative min-h-screen w-full bg-white overflow-visible flex items-center justify-center py-10 px-4 pb-10 md:pb-24 md:h-screen">
+      <section className="relative min-h-screen w-full bg-white overflow-visible flex items-center justify-center py-10 px-4 pb-10 md:pb-24 md:h-[120vh] lg:h-[115vh] xl:h-[110vh]">
         {/* Video Box - Behind middle card on mobile, same position on desktop */}
         <div className="absolute md:relative w-full max-w-4xl overflow-hidden">
           <video
@@ -195,10 +195,10 @@ export default function AIPage() {
         </div>
 
         {/* Content Container - Grid with text and boxes */}
-        <div className="relative md:absolute md:inset-0 overflow-hidden flex items-start md:items-end left-0 right-0 z-20 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-2 md:py-0 md:bottom-16 lg:bottom-20 xl:bottom-28">
-          <div className="container mx-auto w-full md:my-0">
+        <div className="relative md:absolute md:inset-0 overflow-hidden flex items-start md:items-end left-0 right-0 z-20 w-full px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16 py-2 md:py-0 md:bottom-4 lg:bottom-8 xl:bottom-12 2xl:bottom-16">
+          <div className="container mx-auto w-full md:my-0 max-w-[1600px]">
             {/* Mobile: Single column, Desktop: 3 columns */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-4 lg:gap-6 xl:gap-8">
 
               {/* First Row - Hero Text (Full Width) */}
               <div className="md:col-span-2 lg:col-span-3">
@@ -207,7 +207,7 @@ export default function AIPage() {
                   initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold text-black mb-1 sm:mb-4"
+                  className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-black mb-1 sm:mb-4 md:mb-2 lg:mb-3"
                 >
                   Solutions for Businesses
                 </motion.h1>
@@ -215,14 +215,14 @@ export default function AIPage() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.5 }}
-                  className="flex flex-col items-start gap-1 sm:gap-3 mb-1 sm:mb-4 md:mb-10 lg:mb-12"
+                  className="flex flex-col items-start gap-1 sm:gap-3 mb-1 sm:mb-4 md:mb-6 lg:mb-8 xl:mb-10"
                 >
                   {/* Bottom Row - Subtext */}
                   <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.7 }}
-                    className="text-sm sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-bold text-black pt-0 sm:pt-3 md:pt-4 lg:pt-6"
+                    className="text-sm sm:text-xl md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold text-black pt-0 sm:pt-3 md:pt-2 lg:pt-3 xl:pt-4"
                   >
                     Based on cutting AI technologies
                   </motion.p>
