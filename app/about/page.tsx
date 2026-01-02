@@ -7,7 +7,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+  visible: { opacity: 1, y: 0 }
 };
 
 const staggerContainer = {
@@ -17,7 +17,7 @@ const staggerContainer = {
 
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.9 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.6 } }
+  visible: { opacity: 1, scale: 1 }
 };
 
 export default function AboutPage() {
