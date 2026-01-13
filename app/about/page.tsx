@@ -1198,7 +1198,7 @@ function DynamicBadgeSection() {
             viewport={{ once: true }}
             transition={{ delay: index * 0.15 }}
             className="flex justify-center"
-            ref={el => badgeRefs.current[index] = el}
+            ref={el => { badgeRefs.current[index] = el; }}
           >
             <div className="group relative">
               <div 
