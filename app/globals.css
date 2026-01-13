@@ -350,14 +350,6 @@ body {
   animation-delay: 0.6s;
 }
 
-@keyframes wave {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
 /* Wave animation */
 @keyframes wave {
   0%, 100% {
@@ -370,3 +362,4 @@ body {
 
 .animate-wave {
   animation: wave 2s ease-in-out infinite;
+}
