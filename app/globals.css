@@ -257,6 +257,53 @@ body::-webkit-scrollbar {
   animation: float-vertical-reverse 12s ease-in-out infinite;
 }
 
+/* Horizontal floating animation for gradient balls with pulse */
+@keyframes float-horizontal {
+  0%, 100% {
+    transform: translateX(0) scale(1);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateX(300px) scale(1.2);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateX(-200px) scale(0.85);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translateX(250px) scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+@keyframes float-horizontal-reverse {
+  0%, 100% {
+    transform: translateX(0) scale(1);
+    opacity: 0.55;
+  }
+  25% {
+    transform: translateX(-280px) scale(0.9);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateX(220px) scale(1.25);
+    opacity: 0.75;
+  }
+  75% {
+    transform: translateX(-180px) scale(0.85);
+    opacity: 0.6;
+  }
+}
+
+.animate-float-horizontal {
+  animation: float-horizontal 14s ease-in-out infinite;
+}
+
+.animate-float-horizontal-reverse {
+  animation: float-horizontal-reverse 16s ease-in-out infinite;
+}
+
 /* Vertical text utility */
 .vertical-text {
   writing-mode: vertical-rl;
@@ -364,4 +411,18 @@ body::-webkit-scrollbar {
 
 .animate-wave {
   animation: wave 2s ease-in-out infinite;
+}
+
+/* Shimmer animation for progress bars */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
 }
