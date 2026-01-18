@@ -6,6 +6,18 @@ import { motion, useScroll, useTransform, useInView, useMotionValue } from 'fram
 import NumberFlow from '@number-flow/react';
 import { Award, Users, FileBarChart, Eye, Zap, SlidersHorizontal } from 'lucide-react';
 
+// Add global styles for arc rotation animation
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes rotateArc {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -21,6 +33,46 @@ const scaleIn = {
   hidden: { opacity: 0, scale: 0.9 },
   visible: { opacity: 1, scale: 1 }
 };
+
+// Metric Item Component for Dashboard
+const MetricItem = React.memo(({ metric, index }: { metric: { label: string; value: number; width: number }; index: number }) => {
+  const [displayValue, setDisplayValue] = React.useState(0);
+  const ref = React.useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  React.useEffect(() => {
+    if (isInView) {
+      const timer = setTimeout(() => setDisplayValue(metric.value), index * 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isInView, metric.value, index]);
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1 }}
+    >
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm text-gray-600">{metric.label}</span>
+        <span className="text-sm font-semibold text-[#5919C1]">
+          +<NumberFlow value={displayValue} />%
+        </span>
+      </div>
+      <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full bg-gradient-to-r from-[#5919C1] to-[#A53A9A] rounded-full"
+          initial={{ width: 0 }}
+          whileInView={{ width: `${metric.width}%` }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.2, delay: index * 0.1, ease: "easeOut" }}
+        />
+      </div>
+    </motion.div>
+  );
+});
 
 // Animated Number Component
 function AnimatedNumber({ value }: { value: number }) {
@@ -682,8 +734,15 @@ const aidaDifferenceData = [
 function AidaDifferenceCards() {
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Prevent hydration mismatch by only rendering on client
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Check if mobile
   useEffect(() => {
@@ -724,6 +783,45 @@ function AidaDifferenceCards() {
     return () => observer.disconnect();
   }, [isMobile]);
 
+  // Don't render animated elements until mounted to prevent hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="flex md:grid md:grid-cols-3 gap-8 mb-6 md:mb-20">
+        {aidaDifferenceData.map((item, index) => (
+          <div key={index} className="relative">
+            <div className="-mb-44 relative">
+              <svg className="w-full h-48" viewBox="-2 -2 404 196" preserveAspectRatio="none">
+                <path 
+                  d="M25,0 L385,0 C394,0 400,6 400,15 L400,177 C400,186 394,192 385,192 C380,192 15,15 15,15 C6,6 16,0 25,0 Z"
+                  fill="#150D2E"
+                />
+              </svg>
+            </div>
+            <div className="bg-white rounded-3xl shadow-2xl p-8 border-2 border-gray-100 relative z-10" style={{ minHeight: '420px' }}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#5919C1] to-[#A53A9A] flex-shrink-0">
+                  {item.icon}
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-900">{item.title}</h3>
+              </div>
+              <p className="text-gray-600 mb-6">{item.description}</p>
+              <ul className="space-y-3">
+                {item.features.map((feature, featureIndex) => (
+                  <li key={featureIndex} className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-[#5919C1] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-gray-700 text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <>
     <div 
@@ -743,17 +841,88 @@ function AidaDifferenceCards() {
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}
             className={`relative flex-shrink-0 w-[85vw] md:w-auto snap-center md:snap-align-none ${isActive ? 'aida-card-active' : 'group'}`}
+            onMouseEnter={() => setHoveredCard(index)}
+            onMouseLeave={() => setHoveredCard(null)}
           >
             {/* Small card above - Triangle with rounded corners */}
-            <div className="-mb-44 relative transition-all duration-500">
+            <div className="-mb-44 relative transition-all duration-500 overflow-hidden">
+              {/* Pattern - different for card 1 and card 2 */}
+              {index === 0 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '2px',
+                    top: '2px',
+                    right: '5px',
+                    bottom: '5px',
+                    width: 'calc(100% - 7px)',
+                    height: 'calc(100% - 7px)',
+                    pointerEvents: 'none',
+                    zIndex: 10,
+                    clipPath: 'polygon(6.25% 0%, 96.25% 0%, 100% 3.125%, 100% 7.8125%, 100% 92.1875%, 100% 100%, 95% 100%, 3.75% 7.8125%, 0% 3.125%, 4% 0%)',
+                    transform: item.flipped ? 'scaleX(-1)' : 'none',
+                  }}
+                >
+                  {[
+                    // Main arcs only (first 3 hidden), moved up and closer together
+                    { r: 90, count: 6, opacity: 0.35, speed: 20 },
+                    { r: 125, count: 8, opacity: 0.5, speed: 25 },
+                    { r: 160, count: 11, opacity: 0.65, speed: 30 },
+                    { r: 200, count: 15, opacity: 0.8, speed: 35 },
+                    { r: 240, count: 20, opacity: 1, speed: 40 },
+                    { r: 280, count: 26, opacity: 1, speed: 45 },
+                    { r: 320, count: 32, opacity: 1, speed: 50 },
+                  ].map((arc, arcIdx) => {
+                    return (
+                      <div
+                        key={`arc-group-${arcIdx}`}
+                        style={{
+                          position: 'absolute',
+                          left: '50%',
+                          top: '-20px',
+                          width: 0,
+                          height: 0,
+                          animation: `rotateArc ${arc.speed}s linear infinite`,
+                        }}
+                      >
+                        {Array.from({ length: arc.count }).map((_, i) => {
+                          // Arrange dots in full circle (360deg)
+                          const angle = (i / arc.count) * Math.PI * 2;
+                          const cx = arc.r * Math.cos(angle);
+                          const cy = arc.r * Math.sin(angle);
+                          return (
+                            <span
+                              key={`arc-dot-${arcIdx}-${i}`}
+                              className="w-4 h-4 rounded-full bg-[#5919C1]"
+                              style={{
+                                position: 'absolute',
+                                left: `${cx}px`,
+                                top: `${cy}px`,
+                                opacity: arc.opacity,
+                                transform: 'translate(-50%, -50%)',
+                                boxShadow: '0 0 8px 2px #5919C1AA',
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {/* SVG Triangle with rounded corners and shiny border */}
               <svg 
-                className="w-full h-48" 
+                className="w-full h-48 relative" 
                 viewBox="-2 -2 404 196" 
                 preserveAspectRatio="none"
-                style={{ display: 'block', overflow: 'visible', transform: item.flipped ? 'scaleX(-1)' : 'none' }}
+                style={{ display: 'block', overflow: 'visible', transform: item.flipped ? 'scaleX(-1)' : 'none', zIndex: index === 1 ? 15 : 5 }}
               >
                 <defs>
+                  {/* Clip path for the triangle shape */}
+                  <clipPath id={`triangleClip-${index}`}>
+                    <path d="M25,0 L385,0 C394,0 400,6 400,15 L400,177 C400,186 394,192 385,192 C380,192 15,15 15,15 C6,6 16,0 25,0 Z" />
+                  </clipPath>
+                  
                   {/* Gradient for the fill */}
                   <linearGradient id={`triangleFillActive-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="rgba(89, 25, 193, 0.1)" />
@@ -794,37 +963,669 @@ function AidaDifferenceCards() {
                       <feMergeNode in="SourceGraphic" />
                     </feMerge>
                   </filter>
-                  
-                  {/* Dot pattern */}
-                  <pattern id={`triangleDots1Active-${index}`} x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-                    <circle cx="16" cy="16" r="2" fill="rgba(89, 25, 193, 0.4)" />
-                  </pattern>
-                  <pattern id={`triangleDots2Active-${index}`} x="16" y="16" width="32" height="32" patternUnits="userSpaceOnUse">
-                    <circle cx="16" cy="16" r="2" fill="rgba(165, 58, 154, 0.3)" />
-                  </pattern>
                 </defs>
                 
-                {/* Background fill */}
+                {/* Background with purplish color below dot pattern */}
                 <path 
                   d="M25,0 L385,0 C394,0 400,6 400,15 L400,177 C400,186 394,192 385,192 C380,192 15,15 15,15 C6,6 16,0 25,0 Z"
-                  fill="#0A0A0A"
+                  fill="#150D2E"
+                  style={{ zIndex: -1 }}
                 />
                 
-                {/* Gradient overlay */}
-                <path 
-                  d="M25,0 L385,0 C394,0 400,6 400,15 L400,177 C400,186 394,192 385,192 C380,192 15,15 15,15 C6,6 16,0 25,0 Z"
-                  fill={`url(#triangleFillActive-${index})`}
-                />
-                
-                {/* Dot patterns */}
-                <path 
-                  d="M25,0 L385,0 C394,0 400,6 400,15 L400,177 C400,186 394,192 385,192 C380,192 15,15 15,15 C6,6 16,0 25,0 Z"
-                  fill={`url(#triangleDots1Active-${index})`}
-                />
-                <path 
-                  d="M25,0 L385,0 C394,0 400,6 400,15 L400,177 C400,186 394,192 385,192 C380,192 15,15 15,15 C6,6 16,0 25,0 Z"
-                  fill={`url(#triangleDots2Active-${index})`}
-                />
+                {/* Circle pattern for card 2 - inside SVG after background */}
+                {index === 1 && (
+                  <g clipPath={`url(#triangleClip-${index})`} shapeRendering="geometricPrecision">
+                    {(() => {
+                      const centerX = 60;
+                      const centerY = 60;
+                      return (
+                        <>
+                    {/* Ring 1 - Outermost */}
+                    <motion.g
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 45 }).map((_, i) => {
+                      const angle = (i / 45) * Math.PI * 2;
+                      const radius = 205;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={i}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "8" : (variant === 1 ? "7" : "9")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.85"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 2 */}
+                    <motion.g
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 42 }).map((_, i) => {
+                      const angle = (i / 42) * Math.PI * 2;
+                      const radius = 188;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring2-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "8" : (variant === 1 ? "7" : "9")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.82"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 3 */}
+                    <motion.g
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 48, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 39 }).map((_, i) => {
+                      const angle = (i / 39) * Math.PI * 2;
+                      const radius = 171;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring3-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "8" : (variant === 1 ? "7" : "9")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.79"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 4 */}
+                    <motion.g
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: 42, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 36 }).map((_, i) => {
+                      const angle = (i / 36) * Math.PI * 2;
+                      const radius = 154;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring4-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.76"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 5 */}
+                    <motion.g
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 46, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 33 }).map((_, i) => {
+                      const angle = (i / 33) * Math.PI * 2;
+                      const radius = 137;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring5-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.73"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 6 */}
+                    <motion.g
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 30 }).map((_, i) => {
+                      const angle = (i / 30) * Math.PI * 2;
+                      const radius = 120;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring6-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.7"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 7 - Innermost */}
+                    <motion.g
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 44, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 27 }).map((_, i) => {
+                      const angle = (i / 27) * Math.PI * 2;
+                      const radius = 103;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring7-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.67"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 8 - Innermost */}
+                    <motion.g
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: 42, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 24 }).map((_, i) => {
+                      const angle = (i / 24) * Math.PI * 2;
+                      const radius = 86;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring8-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "8" : (variant === 1 ? "7" : "9")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.64"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                        </>
+                      );
+                    })()}
+                  </g>
+                )}
+
+                {/* Grid pattern for card 3 - moving ring groups */}
+                {/* NOTE: Directions are REVERSED here because parent SVG has scaleX(-1) flip */}
+                {index === 2 && (
+                  <g clipPath={`url(#triangleClip-${index})`} shapeRendering="geometricPrecision">
+                    {(() => {
+                      const circlesPerRow = 35;
+                      const rows = 20;
+                      const startX = -20;
+                      const startY = 10;
+                      const spacing = 16;
+                      
+                      // 8 ring groups - directions reversed to compensate for scaleX(-1) flip
+                      const ringGroups = [
+                        { startRow: 1, startCol: 3, rowCount: 2, colCount: 5, direction: -1, duration: 24 },
+                        { startRow: 3, startCol: 18, rowCount: 2, colCount: 6, direction: 1, duration: 18 },
+                        { startRow: 5, startCol: 8, rowCount: 2, colCount: 7, direction: -1, duration: 22 },
+                        { startRow: 7, startCol: 24, rowCount: 2, colCount: 5, direction: 1, duration: 26 },
+                        { startRow: 9, startCol: 12, rowCount: 2, colCount: 6, direction: -1, duration: 20 },
+                        { startRow: 11, startCol: 4, rowCount: 2, colCount: 8, direction: 1, duration: 28 },
+                        { startRow: 13, startCol: 20, rowCount: 2, colCount: 5, direction: -1, duration: 19 },
+                        { startRow: 15, startCol: 10, rowCount: 2, colCount: 7, direction: 1, duration: 25 },
+                      ];
+                      
+                      const isInRingGroup = (row: number, col: number) => {
+                        for (const group of ringGroups) {
+                          if (row >= group.startRow && row < group.startRow + group.rowCount &&
+                              col >= group.startCol && col < group.startCol + group.colCount) {
+                            return true;
+                          }
+                        }
+                        return false;
+                      };
+                      
+                      const getRowGroup = (row: number) => {
+                        for (let i = 0; i < ringGroups.length; i++) {
+                          const group = ringGroups[i];
+                          if (row >= group.startRow && row < group.startRow + group.rowCount) {
+                            return i;
+                          }
+                        }
+                        return -1;
+                      };
+                      
+                      return (
+                        <>
+                          {/* Static dots grid (rows without rings) */}
+                          {Array.from({ length: rows }).map((_, row) => {
+                            const groupIndex = getRowGroup(row);
+                            if (groupIndex !== -1) return null; // Skip rows that belong to ring groups
+                            
+                            const y = startY + row * spacing;
+                            const rowOpacity = 0.2 + (row / 20) * 0.5;
+                            
+                            return (
+                              <g key={`static-row-${row}`}>
+                                {Array.from({ length: circlesPerRow }).map((_, col) => {
+                                  const x = startX + col * spacing;
+                                  
+                                  return (
+                                    <circle
+                                      key={`static-${row}-${col}`}
+                                      cx={x}
+                                      cy={y}
+                                      r="7"
+                                      fill="#5919C1"
+                                      opacity={rowOpacity}
+                                      vectorEffect="non-scaling-stroke"
+                                    />
+                                  );
+                                })}
+                              </g>
+                            );
+                          })}
+                          
+                          {/* Animated ring groups - entire rows move together */}
+                          {ringGroups.map((group, groupIndex) => {
+                            const moveDistance = group.direction * 560;
+                            const rowWidth = circlesPerRow * spacing;
+                            
+                            const createGroupContent = (offset: number = 0) => {
+                              const allCircles = [];
+                              
+                              // Render all circles in all rows of this group
+                              for (let r = 0; r < group.rowCount; r++) {
+                                const row = group.startRow + r;
+                                const y = startY + row * spacing;
+                                const rowOpacity = 0.2 + (row / 20) * 0.5;
+                                
+                                // Render entire row (all columns)
+                                for (let col = 0; col < circlesPerRow; col++) {
+                                  const x = startX + col * spacing + offset;
+                                  const isRing = isInRingGroup(row, col);
+                                  
+                                  allCircles.push(
+                                    <circle
+                                      key={`group-${groupIndex}-${row}-${col}-${offset}`}
+                                      cx={x}
+                                      cy={y}
+                                      r={isRing ? "6" : "7"}
+                                      fill={isRing ? "none" : "#5919C1"}
+                                      stroke={isRing ? "#A78BFA" : "none"}
+                                      strokeWidth={isRing ? "1" : "0"}
+                                      opacity={isRing ? 0.9 : rowOpacity}
+                                      vectorEffect="non-scaling-stroke"
+                                    />
+                                  );
+                                }
+                              }
+                              
+                              return allCircles;
+                            };
+                            
+                            return (
+                              <motion.g
+                                key={`ring-group-${groupIndex}`}
+                                animate={{ x: [0, moveDistance] }}
+                                transition={{ duration: group.duration, repeat: Infinity, ease: "linear", repeatType: "loop" }}
+                              >
+                                {createGroupContent(0)}
+                                {createGroupContent(moveDistance > 0 ? -rowWidth : rowWidth)}
+                              </motion.g>
+                            );
+                          })}
+                        </>
+                      );
+                    })()}
+                  </g>
+                )}
                 
                 {/* Glass overlay 1 - subtle base shine */}
                 <path 
@@ -859,29 +1660,839 @@ function AidaDifferenceCards() {
                   filter={`url(#triangleGlowActive-${index})`}
                   vectorEffect="non-scaling-stroke"
                 />
-                
-                {/* Number badge */}
-                <text
-                  x={item.flipped ? "370" : "340"}
-                  y="35"
-                  fill="rgba(255,255,255,0.4)"
-                  fontSize="22"
-                  fontWeight="300"
-                  fontFamily="system-ui, -apple-system, sans-serif"
-                  className={`transition-colors duration-500 ${isActive ? 'fill-white/60' : 'group-hover:fill-white/60'}`}
-                  style={{ transform: item.flipped ? 'scaleX(-1)' : 'none', transformOrigin: item.flipped ? '370px 35px' : '340px 35px' }}
-                >
-                  /00{index + 1}
-                </text>
               </svg>
+              
+              {/* Number badge - positioned above dot pattern */}
+              <div
+                className={`absolute top-[20px] transition-colors duration-500 ${isActive ? 'text-white/60' : 'text-white/90 group-hover:text-white/60'}`}
+                style={{
+                  [item.flipped ? 'left' : 'right']: '30px',
+                  fontSize: '22px',
+                  fontWeight: '300',
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  zIndex: 20,
+                  pointerEvents: 'none',
+                }}
+              >
+                /00{index + 1}
+              </div>
             </div>
 
             {/* Main card */}
-            <div className="relative overflow-hidden transition-all duration-500 bg-[#0A0A0A]"
+            <div className="relative overflow-hidden transition-all duration-500 bg-transparent"
               style={{
                 clipPath: `url(#mainCardClipActive-${index})`,
               }}
             >
+              {/* Pattern for card 1 - rotating dots */}
+              {index === 0 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '2px',
+                    top: '2px',
+                    right: '5px',
+                    bottom: '5px',
+                    width: 'calc(100% - 7px)',
+                    height: '192px',
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                    transform: item.flipped ? 'scaleX(-1)' : 'none',
+                  }}
+                >
+                  {[
+                    // Main arcs only (first 3 hidden), moved up and closer together
+                    { r: 90, count: 6, opacity: 0.35, speed: 20 },
+                    { r: 125, count: 8, opacity: 0.5, speed: 25 },
+                    { r: 160, count: 11, opacity: 0.65, speed: 30 },
+                    { r: 200, count: 15, opacity: 0.8, speed: 35 },
+                    { r: 240, count: 20, opacity: 1, speed: 40 },
+                    { r: 280, count: 26, opacity: 1, speed: 45 },
+                  ].map((arc, arcIdx) => {
+                    return (
+                      <div
+                        key={`main-arc-group-${arcIdx}`}
+                        style={{
+                          position: 'absolute',
+                          left: '200px',
+                          top: '-20px',
+                          width: 0,
+                          height: 0,
+                          animation: `rotateArc ${arc.speed}s linear infinite`,
+                        }}
+                      >
+                        {Array.from({ length: arc.count }).map((_, i) => {
+                          // Arrange dots in full circle (360deg)
+                          const angle = (i / arc.count) * Math.PI * 2;
+                          const cx = arc.r * Math.cos(angle);
+                          const cy = arc.r * Math.sin(angle);
+                          return (
+                            <span
+                              key={`main-arc-dot-${arcIdx}-${i}`}
+                              className="w-4 h-4 rounded-full bg-[#5919C1]"
+                              style={{
+                                position: 'absolute',
+                                left: `${cx}px`,
+                                top: `${cy}px`,
+                                opacity: arc.opacity,
+                                transform: 'translate(-50%, -50%)',
+                                boxShadow: '0 0 8px 2px #5919C1AA',
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Pattern for card 2 - rotating circle rings */}
+              {index === 1 && (
+                <svg
+                  viewBox="0 0 400 192"
+                  style={{
+                    position: 'absolute',
+                    left: '2px',
+                    top: '2px',
+                    right: '5px',
+                    bottom: '5px',
+                    width: 'calc(100% - 7px)',
+                    height: '100%',
+                    pointerEvents: 'none',
+                    zIndex: 15,
+                    transform: item.flipped ? 'scaleX(-1)' : 'none',
+                  }}
+                >
+                  <g shapeRendering="geometricPrecision">
+                    {(() => {
+                      const centerX = 60;
+                      const centerY = -90;
+                      return (
+                        <>
+                    {/* Ring 1 - Outermost */}
+                    <motion.g
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 45 }).map((_, i) => {
+                      const angle = (i / 45) * Math.PI * 2;
+                      const radius = 205;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={i}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.85"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 2 */}
+                    <motion.g
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 42 }).map((_, i) => {
+                      const angle = (i / 42) * Math.PI * 2;
+                      const radius = 188;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring2-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.82"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 3 */}
+                    <motion.g
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 48, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 39 }).map((_, i) => {
+                      const angle = (i / 39) * Math.PI * 2;
+                      const radius = 171;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring3-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.79"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 4 */}
+                    <motion.g
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: 42, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 36 }).map((_, i) => {
+                      const angle = (i / 36) * Math.PI * 2;
+                      const radius = 154;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring4-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.76"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 5 */}
+                    <motion.g
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 46, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 33 }).map((_, i) => {
+                      const angle = (i / 33) * Math.PI * 2;
+                      const radius = 137;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring5-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.73"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 6 */}
+                    <motion.g
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 30 }).map((_, i) => {
+                      const angle = (i / 30) * Math.PI * 2;
+                      const radius = 120;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring6-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.7"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 7 - Innermost */}
+                    <motion.g
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 44, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 27 }).map((_, i) => {
+                      const angle = (i / 27) * Math.PI * 2;
+                      const radius = 103;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring7-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "7" : (variant === 1 ? "6" : "8")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.67"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                    {/* Ring 8 - Innermost */}
+                    <motion.g
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: 42, repeat: Infinity, ease: "linear" }}
+                    >
+                    {Array.from({ length: 24 }).map((_, i) => {
+                      const angle = (i / 24) * Math.PI * 2;
+                      const radius = 86;
+                      const x = centerX + radius * Math.cos(angle);
+                      const y = centerY + radius * Math.sin(angle);
+                      
+                      // Distribution: 65% default, 15% grey, 25% ring groups
+                      const seed = (i * 31 + radius * 17) % 100;
+                      let variant = 0; // default
+
+                      if (seed >= 80) {
+                        // 25% ring groups (seed 80-99)
+                        const groupPattern = [4, 1, 1, 3, 1, 5, 1];
+                        let position = i;
+                        let inRingGroup = false;
+                        let accumulated = 0;
+                        
+                        for (let g = 0; g < 20; g++) {
+                          const groupSize = groupPattern[g % groupPattern.length];
+                          if (position < accumulated + groupSize) {
+                            inRingGroup = groupSize >= 3;
+                            break;
+                          }
+                          accumulated += groupSize;
+                        }
+                        
+                        if (inRingGroup) {
+                          variant = 2;
+                        }
+                      } else if (seed >= 65 && seed < 80) {
+                        // 15% grey/white (seed 65-79)
+                        variant = 1;
+                      }
+                      // else variant stays 0 (65% - seed 0-64)
+                      
+                      return (
+                        <g key={`ring8-${i}`}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={variant === 2 ? "8" : (variant === 1 ? "7" : "9")}
+                            fill={variant === 2 ? "none" : (variant === 1 ? "#E5E7EB" : "#5919C1")}
+                            stroke={variant === 2 ? "#5919C1" : "none"}
+                            strokeWidth={variant === 2 ? "1" : "0"}
+                            opacity="0.64"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="2.5"
+                            fill="#8B4BD1"
+                            opacity="1"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </g>
+                      );
+                    })}
+                    </motion.g>
+                        </>
+                      );
+                    })()}
+                  </g>
+                </svg>
+              )}
+              
+              {/* Grid pattern for card 3 main card - uses same pattern as small card */}
+              {index === 2 && (
+                <svg
+                  viewBox="-2 -2 404 196"
+                  style={{
+                    position: 'absolute',
+                    left: '0',
+                    top: '0',
+                    width: '100%',
+                    height: 'auto',
+                    pointerEvents: 'none',
+                    zIndex: 15,
+                  }}
+                >
+                  <defs>
+                    <clipPath id={`mainGridClip-${index}`}>
+                      <rect x="-2" y="-2" width="404" height="196" />
+                    </clipPath>
+                  </defs>
+                  <g clipPath={`url(#mainGridClip-${index})`} shapeRendering="geometricPrecision">
+                    {(() => {
+                      const circlesPerRow = 35;
+                      const rows = 20;
+                      const startX = -20;
+                      const startY = 10;
+                      const spacing = 16;
+                      
+                      // 10 ring groups with varied sizes - NO overlapping rows
+                      const ringGroups = [
+                        { startRow: 0, startCol: 2, rowCount: 2, colCount: 5, direction: 1, duration: 22 },
+                        { startRow: 2, startCol: 18, rowCount: 2, colCount: 8, direction: -1, duration: 26 },
+                        { startRow: 4, startCol: 6, rowCount: 2, colCount: 6, direction: 1, duration: 18 },
+                        { startRow: 6, startCol: 22, rowCount: 2, colCount: 7, direction: -1, duration: 24 },
+                        { startRow: 8, startCol: 10, rowCount: 2, colCount: 9, direction: 1, duration: 20 },
+                        { startRow: 10, startCol: 1, rowCount: 2, colCount: 6, direction: -1, duration: 28 },
+                        { startRow: 12, startCol: 16, rowCount: 2, colCount: 8, direction: 1, duration: 19 },
+                        { startRow: 14, startCol: 5, rowCount: 2, colCount: 7, direction: -1, duration: 25 },
+                        { startRow: 16, startCol: 20, rowCount: 2, colCount: 6, direction: 1, duration: 21 },
+                        { startRow: 18, startCol: 8, rowCount: 2, colCount: 10, direction: -1, duration: 27 },
+                      ];
+                      
+                      const isInRingGroup = (row: number, col: number) => {
+                        for (const group of ringGroups) {
+                          if (row >= group.startRow && row < group.startRow + group.rowCount &&
+                              col >= group.startCol && col < group.startCol + group.colCount) {
+                            return true;
+                          }
+                        }
+                        return false;
+                      };
+                      
+                      const getRowGroup = (row: number) => {
+                        for (let i = 0; i < ringGroups.length; i++) {
+                          const group = ringGroups[i];
+                          if (row >= group.startRow && row < group.startRow + group.rowCount) {
+                            return i;
+                          }
+                        }
+                        return -1;
+                      };
+                      
+                      return (
+                        <>
+                          {/* Static dots grid (rows without rings) */}
+                          {Array.from({ length: rows }).map((_, row) => {
+                            const groupIndex = getRowGroup(row);
+                            if (groupIndex !== -1) return null;
+                            
+                            const y = startY + row * spacing;
+                            const rowOpacity = 0.2 + (row / 20) * 0.5;
+                            
+                            return (
+                              <g key={`main-static-row-${row}`}>
+                                {Array.from({ length: circlesPerRow }).map((_, col) => {
+                                  const x = startX + col * spacing;
+                                  
+                                  return (
+                                    <circle
+                                      key={`main-static-${row}-${col}`}
+                                      cx={x}
+                                      cy={y}
+                                      r="7"
+                                      fill="#5919C1"
+                                      opacity={rowOpacity}
+                                      vectorEffect="non-scaling-stroke"
+                                    />
+                                  );
+                                })}
+                              </g>
+                            );
+                          })}
+                          
+                          {/* Animated ring groups - entire rows move together */}
+                          {ringGroups.map((group, groupIndex) => {
+                            const moveDistance = group.direction * 560;
+                            const rowWidth = circlesPerRow * spacing;
+                            
+                            const createGroupContent = (offset: number = 0) => {
+                              const allCircles = [];
+                              
+                              for (let r = 0; r < group.rowCount; r++) {
+                                const row = group.startRow + r;
+                                const y = startY + row * spacing;
+                                const rowOpacity = 0.2 + (row / 20) * 0.5;
+                                
+                                for (let col = 0; col < circlesPerRow; col++) {
+                                  const x = startX + col * spacing + offset;
+                                  const isRing = isInRingGroup(row, col);
+                                  
+                                  allCircles.push(
+                                    <circle
+                                      key={`main-group-${groupIndex}-${row}-${col}-${offset}`}
+                                      cx={x}
+                                      cy={y}
+                                      r={isRing ? "6" : "7"}
+                                      fill={isRing ? "none" : "#5919C1"}
+                                      stroke={isRing ? "#A78BFA" : "none"}
+                                      strokeWidth={isRing ? "1" : "0"}
+                                      opacity={isRing ? 0.9 : rowOpacity}
+                                      vectorEffect="non-scaling-stroke"
+                                    />
+                                  );
+                                }
+                              }
+                              
+                              return allCircles;
+                            };
+                            
+                            return (
+                              <motion.g
+                                key={`main-ring-group-${groupIndex}`}
+                                animate={{ x: [0, moveDistance] }}
+                                transition={{ duration: group.duration, repeat: Infinity, ease: "linear", repeatType: "loop" }}
+                              >
+                                {createGroupContent(0)}
+                                {createGroupContent(moveDistance > 0 ? -rowWidth : rowWidth)}
+                              </motion.g>
+                            );
+                          })}
+                          
+                          {/* Extra simple rows continuing below */}
+                          {Array.from({ length: 6 }).map((_, extraRow) => {
+                            const row = rows + extraRow;
+                            const y = startY + row * spacing;
+                            const rowOpacity = Math.max(0.1, 0.7 - (extraRow * 0.1));
+                            
+                            return (
+                              <g key={`main-extra-row-${extraRow}`}>
+                                {Array.from({ length: circlesPerRow }).map((_, col) => {
+                                  const x = startX + col * spacing;
+                                  
+                                  return (
+                                    <circle
+                                      key={`main-extra-${extraRow}-${col}`}
+                                      cx={x}
+                                      cy={y}
+                                      r="7"
+                                      fill="#5919C1"
+                                      opacity={rowOpacity}
+                                      vectorEffect="non-scaling-stroke"
+                                    />
+                                  );
+                                })}
+                              </g>
+                            );
+                          })}
+                        </>
+                      );
+                    })()}
+                  </g>
+                  
+                  {/* Smooth fade overlay at bottom */}
+                  <defs>
+                    <linearGradient id={`mainGridFade-${index}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="transparent" />
+                      <stop offset="40%" stopColor="transparent" />
+                      <stop offset="70%" stopColor="rgba(10, 10, 20, 0.5)" />
+                      <stop offset="100%" stopColor="rgba(10, 10, 20, 0.95)" />
+                    </linearGradient>
+                  </defs>
+                  <rect 
+                    x="-2" 
+                    y="-2" 
+                    width="404" 
+                    height="196" 
+                    fill={`url(#mainGridFade-${index})`}
+                    style={{ pointerEvents: 'none' }}
+                  />
+                </svg>
+              )}
+              
+              {/* Extended fade overlay to bottom of main card - text appears over this */}
+              {index === 2 && (
+                <div 
+                  className="absolute left-0 right-0 pointer-events-none"
+                  style={{
+                    top: '40%',
+                    bottom: 0,
+                    background: 'linear-gradient(to bottom, transparent 0%, rgba(21, 13, 46, 0.6) 30%, rgba(21, 13, 46, 0.9) 60%, rgb(21, 13, 46) 100%)',
+                    zIndex: 16,
+                  }}
+                />
+              )}
+              
               {/* SVG for rounded main card clip path */}
               <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
@@ -913,8 +2524,8 @@ function AidaDifferenceCards() {
                   </defs>
                   <path 
                     d={item.flipped
-                      ? "M100,10 C100,6 99,4 96,4 L8,38 Q0,40 0,46 L0,94 Q0,100 6,100 L94,100 Q100,100 100,94 L100,10 Z"
-                      : "M0,10 C0,6 1,4 4,4 L92,38 Q100,40 100,46 L100,94 Q100,100 94,100 L6,100 Q0,100 0,94 L0,10 Z"
+                      ? "M100,10 C100,6 99,4 96,4 L8,36 Q0,40 0,46 L0,94 Q0,100 6,100 L94,100 Q100,100 100,94 L100,10 Z"
+                      : "M0,10 C0,6 1,4 4,4 L92,36 Q100,40 100,46 L100,94 Q100,100 94,100 L6,100 Q0,100 0,94 L0,10 Z"
                     }
                     fill="none"
                     stroke={`url(#mainCardBorderGradientActive-${index})`}
@@ -933,41 +2544,12 @@ function AidaDifferenceCards() {
               <div className={`absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent transition-opacity duration-700 z-20 pointer-events-none ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
               <div className={`absolute inset-0 bg-[linear-gradient(135deg,transparent_30%,white/3_50%,transparent_70%)] transition-opacity duration-700 z-20 pointer-events-none ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
             
-              {/* Top Box - Dot Pattern */}
-              <div className="relative h-48 overflow-hidden bg-gradient-to-br from-[#5919C1]/10 to-[#A53A9A]/10">
-                {/* Continuous Dot Pattern */}
-                <div className="absolute inset-0" style={{
-                  backgroundImage: `radial-gradient(circle, rgba(89, 25, 193, 0.4) 2px, transparent 2px)`,
-                  backgroundSize: '32px 32px',
-                  backgroundPosition: '0 0'
-                }} />
-                <div className="absolute inset-0" style={{
-                  backgroundImage: `radial-gradient(circle, rgba(165, 58, 154, 0.3) 2px, transparent 2px)`,
-                  backgroundSize: '32px 32px',
-                  backgroundPosition: '16px 16px'
-                }} />
+              {/* Top Box - Background below dot pattern */}
+              <div className="relative h-48 overflow-hidden" style={{ backgroundColor: '#150D2E', zIndex: -1 }}>
               </div>
 
               {/* Bottom Box - Text Content */}
-              <div className="relative p-8 pt-6 pb-12 min-h-[200px]">
-                {/* Seamless blend to bottom box */}
-                <div className="absolute -top-24 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-[#0A0A0A]/60 to-[#0A0A0A]" />
-                
-                {/* Continue dot pattern from top (fading) */}
-                <div className="absolute inset-0 opacity-20" style={{
-                  backgroundImage: `radial-gradient(circle, rgba(89, 25, 193, 0.4) 2px, transparent 2px)`,
-                  backgroundSize: '32px 32px',
-                  backgroundPosition: '0 0'
-                }} />
-                
-                {/* Seamless top blend continuation */}
-                <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[#0A0A0A] to-transparent" />
-                
-                {/* Base gradient for depth */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#0F0F0F] to-[#0A0A0A]" />
-                
-                {/* Subtle purple tint */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(89,25,193,0.02),transparent_60%)]" />
+              <div className="relative p-8 pt-6 pb-12 min-h-[200px]" style={{ backgroundColor: index === 2 ? 'transparent' : '#150D2E' , zIndex: index === 2 ? 20 : -1 }}>
                 
                 <div className="relative z-10 pt-24">
                   <div className="flex items-center justify-center gap-3 mb-6">
@@ -1006,9 +2588,9 @@ function DynamicBadgeSection() {
   const [badgePositions, setBadgePositions] = useState<number[]>([]);
 
   const badges = [
-    { label: 'Clarity', icon: Eye, color: '#FAE34D' },
-    { label: 'Velocity', icon: Zap, color: '#A53A9A' },
-    { label: 'Control', icon: SlidersHorizontal, color: '#8B5CF6' }
+    { label: 'Clarity', icon: Eye, color: '#A78BFA' },
+    { label: 'Velocity', icon: Zap, color: '#8B5CF6' },
+    { label: 'Control', icon: SlidersHorizontal, color: '#7C3AED' }
   ];
 
   useEffect(() => {
@@ -1175,13 +2757,13 @@ function DynamicBadgeSection() {
       {/* Heading Badge with Glass Effect and Moving Gradient */}
       <div className="flex justify-center mb-16 md:mb-20 relative z-10">
         <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-[#5919C1] via-[#A53A9A] to-[#5919C1] rounded-full blur-md opacity-60 group-hover:opacity-80 transition-opacity duration-500 bg-[length:200%_100%] animate-gradient" />
+          <div className="absolute -inset-1 bg-gradient-to-r from-[#7C3AED] via-[#8B5CF6] to-[#A78BFA] rounded-full blur-md opacity-40 group-hover:opacity-60 transition-opacity duration-500 bg-[length:200%_100%] animate-gradient" />
           
-          <div className="relative px-4 py-2.5 md:px-8 md:py-4 rounded-full bg-white/5 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(89,25,193,0.3)]">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/15 via-transparent to-transparent" />
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+          <div className="relative px-4 py-2.5 md:px-8 md:py-4 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(124,58,237,0.2)]">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 via-transparent to-transparent" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             
-            <h3 className="relative text-base md:text-2xl lg:text-3xl font-medium text-white drop-shadow-lg whitespace-nowrap">
+            <h3 className="relative text-base md:text-2xl lg:text-3xl font-light text-white/90 whitespace-nowrap">
               Built for companies that want
             </h3>
           </div>
@@ -1202,19 +2784,18 @@ function DynamicBadgeSection() {
           >
             <div className="group relative">
               <div 
-                className="absolute -inset-2 rounded-xl md:rounded-2xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-500"
+                className="absolute -inset-1.5 rounded-xl md:rounded-2xl blur-md opacity-20 group-hover:opacity-30 transition-opacity duration-500"
                 style={{ backgroundColor: item.color }}
               />
               
-              <div className="relative flex flex-col md:flex-row items-center gap-1.5 md:gap-3 px-3 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105">
+              <div className="relative flex flex-col md:flex-row items-center gap-1.5 md:gap-3 px-3 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl bg-gradient-to-br from-white/5 via-purple-500/5 to-white/5 backdrop-blur-md border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 shadow-[0_0_15px_rgba(139,92,246,0.1)]">
                 <div 
-                  className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: `${item.color}20` }}
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center bg-gradient-to-br from-white/10 to-purple-500/10"
                 >
-                  <item.icon className="w-4 h-4 md:w-5 md:h-5" style={{ color: item.color }} />
+                  <item.icon className="w-4 h-4 md:w-5 md:h-5" style={{ color: item.color, strokeWidth: 1.5 }} />
                 </div>
                 
-                <span className="text-xs md:text-lg font-semibold text-white">{item.label}</span>
+                <span className="text-xs md:text-lg font-light text-white/90">{item.label}</span>
               </div>
             </div>
           </motion.div>
@@ -1402,16 +2983,8 @@ export default function AboutPage() {
                 <motion.div 
                   key={index}
                   variants={fadeInUp}
-                  className={`group relative bg-gradient-to-br from-[#5919C1] to-[#7B3FA8] rounded-[20px] lg:rounded-[28px] shadow-[0_20px_60px_rgba(89,25,193,0.25)] hover:shadow-[0_30px_80px_rgba(89,25,193,0.35)] transition-all duration-500 p-5 lg:p-8 overflow-hidden border border-white/10 ${index === 2 ? 'col-span-2 max-w-[calc(50%-6px)] lg:max-w-none mx-auto lg:mx-0' : ''}`}
+                  className={`group relative  bg-gradient-to-br from-[#2a1740]/90 via-[#3d2557]/80 to-[#1a0e2e]/90 rounded-[20px] lg:rounded-[28px] shadow-[0_20px_60px_rgba(89,25,193,0.25)] hover:shadow-[0_30px_80px_rgba(89,25,193,0.35)] transition-all duration-500 p-5 lg:p-8 overflow-hidden border border-white/10 ${index === 2 ? 'col-span-2 max-w-[calc(50%-6px)] lg:max-w-none mx-auto lg:mx-0' : ''}`}
                 >
-                  {/* Glossy overlay - top highlight */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/25 via-white/5 to-transparent opacity-80" />
-                  
-                  {/* Glossy shine effect */}
-                  <div className="absolute -inset-px bg-gradient-to-br from-white/30 via-transparent to-transparent opacity-50 rounded-[20px] lg:rounded-[28px]" />
-                  
-                  {/* Animated gradient overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
                   {/* Icon - positioned at top right, fully visible */}
                   <div className="absolute top-3 right-3 lg:top-4 lg:right-4 text-white/30 group-hover:text-white/50 transition-all duration-500">
@@ -1443,7 +3016,7 @@ export default function AboutPage() {
       
 
       {/* Why Clients Switch (Dark Section) */}
-      <section className="py-24 px-6 bg-[#0A0A0A] text-white rounded-[40px] mx-4 md:mx-8 mt-16 md:mt-24">
+      <section className="py-24 px-6 bg-[#060413] text-white rounded-[40px] mx-4 md:mx-8 mt-16 md:mt-24">
 
          {/* Grainy/noise overlay */}
         <div className="absolute inset-0 opacity-20" style={{
@@ -1462,7 +3035,7 @@ export default function AboutPage() {
             {/* Glossy Metallic Badge */}
             <div className="flex justify-center mb-6">
               <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
-                <span className="w-2 h-2 rounded-full bg-[#FAE34D] animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-[#5919C1] animate-pulse" />
                 <span className="text-sm font-semibold text-white/90 tracking-wider uppercase">The AIDA Difference</span>
               </div>
             </div>
@@ -1497,9 +3070,9 @@ export default function AboutPage() {
 
       {/* Global Delivery & Follow the Sun */}
       <section className="py-24 px-6 rounded-[40px] mx-4 md:mx-8 mt-16 md:mt-24 relative overflow-hidden bg-black">
-        {/* Animated gradient balls - smaller and vertical movement */}
-        <div className="absolute top-0 left-1/3 w-[250px] h-[250px] rounded-full bg-gradient-to-br from-[#5919C1] via-[#6B2FB8] to-[#8D45B5] blur-[80px] animate-float-vertical" />
-        <div className="absolute bottom-0 right-1/3 w-[200px] h-[200px] rounded-full bg-gradient-to-tr from-[#7530BE] via-[#5919C1] to-[#A53A9A] blur-[70px] animate-float-vertical-reverse" />
+        {/* Animated gradient balls - horizontal movement on desktop, vertical on mobile with pulse */}
+        <div className="absolute top-0 left-1/3 w-[250px] h-[250px] md:w-[300px] md:h-[300px] rounded-full bg-gradient-to-br from-[#5919C1] via-[#6B2FB8] to-[#8D45B5] blur-[80px] md:blur-[100px] animate-float-vertical md:animate-float-horizontal opacity-50 md:opacity-60" />
+        <div className="absolute bottom-0 right-1/3 w-[200px] h-[200px] md:w-[250px] md:h-[250px] rounded-full bg-gradient-to-tr from-[#7530BE] via-[#5919C1] to-[#A53A9A] blur-[70px] md:blur-[90px] animate-float-vertical-reverse md:animate-float-horizontal-reverse opacity-50 md:opacity-60" />
         
         {/* Grainy/noise overlay */}
         <div className="absolute inset-0 opacity-30" style={{
@@ -1512,12 +3085,12 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Left: Text Content */}
             <div>
-              <div className="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-6 text-white border border-white/30">
+              <div className="inline-block px-4 py-1.5 bg-gradient-to-r from-white/20 via-purple-500/10 to-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-6 text-white border border-white/30 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
                 Global Delivery
               </div>
               <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white">
                 Follow-the-Sun <br />
-                <span className="text-[#FAE34D]">Execution</span>
+                <span className="text-white/90">Execution</span>
               </h2>
               <p className="text-lg text-white/90 mb-8 leading-relaxed">
                 Work progresses across time zones—so campaigns, content, and optimizations move forward continuously. Speed is a strategic advantage.
@@ -1531,8 +3104,8 @@ export default function AboutPage() {
                   'Continuous progress'
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-[#FAE34D] flex items-center justify-center flex-shrink-0">
-                      <svg className="w-3 h-3 text-[#5919C1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-5 h-5 rounded-full bg-white/10 border border-white/30 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
@@ -1547,7 +3120,7 @@ export default function AboutPage() {
               <div className="relative w-[280px] h-[280px] md:w-[350px] md:h-[350px]">
                 {/* Outer rotating ring with dot */}
                 <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-spin-very-slow">
-                  <div className="absolute top-0 left-1/2 w-3 h-3 bg-[#FAE34D] rounded-full -translate-x-1/2 -translate-y-1/2 shadow-[0_0_10px_#FAE34D] z-10" />
+                  <div className="absolute top-0 left-1/2 w-3 h-3 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 shadow-[0_0_10px_rgba(255,255,255,0.8)] z-10" />
                 </div>
                 
                 {/* Middle rotating ring with dot (opposite direction) */}
@@ -1556,12 +3129,12 @@ export default function AboutPage() {
                 </div>
                 
                 {/* Inner circle with glow */}
-                <div className="absolute inset-12 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm shadow-[0_0_60px_rgba(250,227,77,0.3)]" />
+                <div className="absolute inset-12 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm shadow-[0_0_60px_rgba(139,92,246,0.2)]" />
                 
                 {/* Center sun icon with pulse */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#FAE34D] to-[#FFC837] flex items-center justify-center shadow-[0_0_40px_rgba(250,227,77,0.6)] animate-pulse-slow">
-                    <svg className="w-10 h-10 text-[#5919C1]" fill="currentColor" viewBox="0 0 24 24">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-white/90 to-white/70 flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.4)] animate-pulse-slow">
+                    <svg className="w-10 h-10 text-[#8B5CF6]" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
                     </svg>
                   </div>
@@ -1589,9 +3162,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Governance & Trust */}
+      
       {/* Governance Section */}
-      <section className="py-24 px-6">
+      <section className="py-24 px-6 relative z-10">
         <div className="container mx-auto max-w-[1200px]">
           {/* Header */}
           <div className="text-center mb-20">
@@ -1632,78 +3205,89 @@ export default function AboutPage() {
           </div>
 
           {/* Live Dashboards */}
-          <div className="bg-gray-50 rounded-[32px] p-8 md:p-12 mb-20">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <motion.div 
+            className="relative bg-white border border-gray-100 rounded-3xl p-8 md:p-12 mb-20"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <div>
-                <h3 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-900">
-                  Live Dashboards = <span className="text-[#5919C1]">Built-In Trust</span>
+                <div className="inline-block px-3 py-1 text-xs font-medium text-[#5919C1] bg-[#5919C1]/8 rounded-full mb-6 border border-[#5919C1]/20">
+                  TRANSPARENCY
+                </div>
+                
+                <h3 className="text-3xl md:text-4xl font-light mb-4 text-gray-900 leading-tight">
+                  Live Dashboards = <br />
+                  <span className="font-semibold bg-gradient-to-r from-[#5919C1] to-[#A53A9A] bg-clip-text text-transparent">
+                    Built-In Trust
+                  </span>
                 </h3>
-                <p className="text-gray-600 mb-6">
+                
+                <p className="text-gray-500 mb-10 text-base leading-relaxed">
                   Clients get access to live KPI dashboards tied to agreed success metrics.
                 </p>
-                <div className="grid grid-cols-2 gap-4">
+                
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-10">
                   {[
                     'Real-time visibility',
                     'No black-box reporting',
                     'Clear ROI tracking',
                     'Data-backed decisions'
                   ].map((item, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-full bg-[#5919C1] flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
+                    <div key={index} className="flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#5919C1]"></div>
                       <span className="text-gray-700 text-sm">{item}</span>
                     </div>
                   ))}
                 </div>
-                <p className="mt-6 text-[#5919C1] font-medium">
-                  Transparency is not a feature—it's a default.
-                </p>
+                
+                <div className="border-l-2 border-[#5919C1] pl-4">
+                  <p className="text-gray-900 font-medium">
+                    Transparency is not a feature — it's a default.
+                  </p>
+                </div>
               </div>
               
               {/* Dashboard Preview */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center justify-between mb-6">
-                  <span className="font-medium text-gray-900">Performance Dashboard</span>
-                  <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              <div className="bg-gray-50 rounded-2xl p-8 border border-gray-200">
+                {/* Header with Live Badge */}
+                <div className="flex items-center justify-between mb-8 pb-5 border-b border-gray-200">
+                  <span className="font-semibold text-gray-900">Performance Dashboard</span>
+                  <span className="px-3 py-1 bg-[#5919C1]/5 text-[#5919C1] text-xs font-semibold rounded-md border border-[#5919C1]/20 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-[#5919C1] rounded-full"></span>
                     Live
                   </span>
                 </div>
-                <div className="space-y-5">
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-500">ROI</span>
-                      <span className="font-semibold text-green-600">+127%</span>
+                
+                {/* Metrics */}
+                <div className="space-y-6">
+                  {[
+                    { label: 'ROI', value: 127, width: 85 },
+                    { label: 'Conversion Rate', value: 4.2, width: 65 },
+                    { label: 'Lead Quality', value: 89, width: 78 }
+                  ].map((metric, index) => (
+                    <MetricItem key={metric.label} metric={metric} index={index} />
+                  ))}
+                </div>
+                
+                {/* Footer Stats */}
+                <div className="mt-8 pt-6 border-t border-gray-200 grid grid-cols-3 gap-4">
+                  {[
+                    { label: 'Uptime', value: '99.9%' },
+                    { label: 'Updates', value: 'Daily' },
+                    { label: 'Access', value: '24/7' }
+                  ].map((stat, index) => (
+                    <div key={index} className="text-center">
+                      <div className="text-xs text-gray-500 mb-1">{stat.label}</div>
+                      <div className="text-sm font-semibold text-gray-900">{stat.value}</div>
                     </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full w-[85%] bg-gradient-to-r from-[#5919C1] to-[#A53A9A] rounded-full" />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-500">Conversion Rate</span>
-                      <span className="font-semibold text-green-600">+4.2%</span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full w-[65%] bg-gradient-to-r from-[#A53A9A] to-[#5919C1] rounded-full" />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-500">Lead Quality</span>
-                      <span className="font-semibold text-green-600">+89%</span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full w-[78%] bg-gradient-to-r from-[#5919C1] to-[#7530BE] rounded-full" />
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Trust Pillars */}
           <div className="mb-20">
@@ -1734,41 +3318,53 @@ export default function AboutPage() {
           </div>
 
           {/* Built for Accountability */}
-          <div className="bg-black rounded-[32px] p-8 md:p-12 text-white">
-            <h3 className="text-2xl md:text-3xl font-semibold mb-8 text-center">
-              Built for <span className="text-[#FAE34D]">Accountability</span>, Not Agency Optics
+          <div className="bg-gradient-to-br from-black via-[#0a0a14] to-black rounded-[32px] p-8 md:p-12 text-white border border-white/5">
+            <h3 className="text-2xl md:text-3xl font-light mb-8 text-center">
+              Built for <span className="text-white font-normal">Accountability</span>, Not Agency Optics
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-              <div>
-                <p className="text-gray-400 text-sm uppercase tracking-wider mb-4">Traditional agencies optimize for</p>
-                <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto">
+              {/* Left Side - Traditional Agencies */}
+              <div className="relative">
+                <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-red-500/30 to-transparent" />
+                <p className="text-gray-500 text-xs uppercase tracking-wider mb-6 font-medium">Traditional agencies optimize for</p>
+                <div className="space-y-4">
                   {['Long contracts', 'Large teams', 'Slow cycles'].map((item, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      <span className="text-gray-300">{item}</span>
+                    <div key={index} className="flex items-center gap-3 group/item">
+                      <div className="w-5 h-5 rounded-full border border-gray-600 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </div>
+                      <span className="text-gray-400 text-sm">{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
-              <div>
-                <p className="text-[#FAE34D] text-sm uppercase tracking-wider mb-4">We optimize for</p>
-                <div className="space-y-3">
+              
+              {/* Right Side - We Optimize */}
+              <div className="relative">
+                <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-purple-500/30 to-transparent" />
+                <p className="text-purple-300 text-xs uppercase tracking-wider mb-6 font-medium">We optimize for</p>
+                <div className="space-y-4">
                   {['Outcomes', 'Speed', 'Transparency', 'Senior ownership'].map((item, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <svg className="w-5 h-5 text-[#FAE34D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-white font-medium">{item}</span>
+                    <div key={index} className="flex items-center gap-3 group/item">
+                      <div className="w-5 h-5 rounded-full bg-white/5 border border-purple-400/30 flex items-center justify-center flex-shrink-0 group-hover/item:bg-purple-500/10 transition-colors">
+                        <svg className="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span className="text-white/90 font-light text-sm group-hover/item:text-white transition-colors">{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-            <p className="text-center text-gray-400 mt-8 italic">
-              That's the difference.
-            </p>
+            <div className="mt-12 pt-8 border-t border-white/5 relative">
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+              <p className="text-center text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-white text-base md:text-lg font-light tracking-wide">
+                That's the difference.
+              </p>
+            </div>
           </div>
         </div>
       </section> 
@@ -1782,7 +3378,7 @@ export default function AboutPage() {
             whileInView="visible"
             viewport={{ once: true }}
             variants={fadeInUp}
-            className="relative rounded-[4rem] overflow-hidden"
+            className="relative rounded-[4rem] overflow-hidden group/cta"
           >
             {/* Video Background */}
             <div className="absolute inset-0 z-0">
@@ -1791,35 +3387,38 @@ export default function AboutPage() {
                 loop
                 muted
                 playsInline
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/cta:scale-105"
               >
                 <source src="https://cdn.pixabay.com/video/2023/08/17/176434-855480487_large.mp4" type="video/mp4" />
               </video>
 
               {/* Dark overlay for readability */}
-              <div className="absolute inset-0 bg-black/50"></div>
+              <div className="absolute inset-0 bg-black/50 transition-all duration-500 group-hover/cta:bg-black/40"></div>
+              
+              {/* Gradient overlay that appears on hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#5919C1]/0 via-[#A53A9A]/0 to-transparent opacity-0 group-hover/cta:opacity-30 transition-opacity duration-700"></div>
             </div>
 
             {/* Content */}
             <div className="relative z-10 py-16 px-8 md:px-16">
               <div className="flex flex-col gap-8">
-                <div>
-                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-normal text-white mb-6">
+                <div className="transition-transform duration-500 group-hover/cta:translate-x-2">
+                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-normal text-white mb-6 transition-all duration-500 group-hover/cta:text-shadow-lg">
                     Ready to Transform Your Business?
                   </h2>
-                  <p className="text-xl text-white/90">
+                  <p className="text-xl text-white/90 transition-all duration-500 group-hover/cta:text-white">
                     Let's discuss how AIDA Corporation can help you unlock new opportunities with data-driven solutions.
                   </p>
                 </div>
                 <div>
                   <Link 
                     href="/get-started" 
-                    className="group relative inline-flex items-center gap-4 px-8 py-5 border-2 border-white rounded-[2rem] text-white font-medium text-lg transition-all duration-300 hover:text-[#5919C1] hover:border-white overflow-hidden"
+                    className="group relative inline-flex items-center gap-4 px-8 py-5 border-2 border-white rounded-[2rem] text-white font-medium text-lg transition-all duration-300 hover:text-[#5919C1] hover:border-white hover:scale-105 hover:shadow-[0_10px_40px_rgba(255,255,255,0.3)] overflow-hidden"
                   >
                     <span className="absolute inset-0 bg-white translate-x-[-100%] transition-transform duration-300 group-hover:translate-x-0"></span>
-                    <span className="relative z-10">Get Started</span>
+                    <span className="relative z-10 transition-all duration-300 group-hover:tracking-wide">Get Started</span>
                     <svg
-                      className="relative z-10 w-6 h-6 transition-all duration-300 group-hover:rotate-330 group-hover:translate-x-1"
+                      className="relative z-10 w-6 h-6 transition-all duration-300 group-hover:rotate-[-45deg] group-hover:translate-x-1"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth={2}
