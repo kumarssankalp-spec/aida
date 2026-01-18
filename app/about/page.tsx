@@ -790,7 +790,7 @@ function AidaDifferenceCards() {
         {aidaDifferenceData.map((item, index) => (
           <div key={index} className="relative">
             <div className="-mb-44 relative">
-              <svg className="w-full h-48" viewBox="-2 -2 404 196" preserveAspectRatio="none">
+              <svg className="w-full h-48" viewBox="-2 -2 404 196" preserveAspectRatio="none" style={{ transform: item.flipped ? 'scaleX(-1)' : 'none' }}>
                 <path 
                   d="M25,0 L385,0 C394,0 400,6 400,15 L400,177 C400,186 394,192 385,192 C380,192 15,15 15,15 C6,6 16,0 25,0 Z"
                   fill="#150D2E"
@@ -798,23 +798,8 @@ function AidaDifferenceCards() {
               </svg>
             </div>
             <div className="bg-white rounded-3xl shadow-2xl p-8 border-2 border-gray-100 relative z-10" style={{ minHeight: '420px' }}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#5919C1] to-[#A53A9A] flex-shrink-0">
-                  {item.icon}
-                </div>
-                <h3 className="text-2xl font-semibold text-gray-900">{item.title}</h3>
-              </div>
-              <p className="text-gray-600 mb-6">{item.description}</p>
-              <ul className="space-y-3">
-                {item.features.map((feature, featureIndex) => (
-                  <li key={featureIndex} className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-[#5919C1] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-gray-700 text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">{item.title}</h3>
+              <p className="text-gray-600">{item.desc}</p>
             </div>
           </div>
         ))}
