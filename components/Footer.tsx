@@ -370,7 +370,7 @@ export default function Footer({ className = '', id }: FooterProps) {
 
             {/* Copyright - Hidden on mobile, visible on desktop */}
             <p className="hidden lg:block text-base sm:text-lg pt-4">
-              © {currentYear} by AAIDA Corp Private Limited
+              © {currentYear} by AAIDA Corp. Private Limited
             </p>
           </div>
         </div>
@@ -379,7 +379,7 @@ export default function Footer({ className = '', id }: FooterProps) {
         <div className="lg:hidden mt-12">
           <h4 className="text-5xl sm:text-6xl font-thin leading-none text-black/80 mb-4">Aida Corporation</h4>
           <p className="text-sm sm:text-base">
-            © {currentYear} by AAIDA Corp Private Limited
+            © {currentYear} by AAIDA Corp. Private Limited
           </p>
         </div>
       </div>
