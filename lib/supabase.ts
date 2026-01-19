@@ -15,7 +15,7 @@ export interface NewsletterSubscriber {
   name?: string;
   phone?: string;
   subscribed_at?: string;
-  source?: 'footer' | 'contact';
+  source?: string;
 }
 
 export interface LeadSubmission {
