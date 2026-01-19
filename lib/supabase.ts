@@ -72,13 +72,11 @@ export const saveLeadSubmission = async (data: LeadSubmission): Promise<boolean>
     const result = await response.json();
 
     if (!response.ok || !result.success) {
-      console.error('Failed to save lead submission:', result.error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error saving lead submission:', error);
     return false;
   }
 };
@@ -86,7 +84,7 @@ export const saveLeadSubmission = async (data: LeadSubmission): Promise<boolean>
 // Subscribe to newsletter
 export const subscribeToNewsletter = async (data: NewsletterSubscriber): Promise<boolean> => {
   try {
-    const { error } = await supabase
+    const { data: result, error } = await supabase
       .from('newsletter_subscribers')
       .insert([{
         email: data.email,
@@ -94,12 +92,13 @@ export const subscribeToNewsletter = async (data: NewsletterSubscriber): Promise
         phone: data.phone || null,
         source: data.source || 'footer',
         subscribed_at: new Date().toISOString()
-      }]);
+      }])
+      .select();
 
     if (error) {
       // If duplicate email, update existing record
       if (error.code === '23505') {
-        const { error: updateError } = await supabase
+        const { data: updateResult, error: updateError } = await supabase
           .from('newsletter_subscribers')
           .update({
             name: data.name || null,
@@ -107,21 +106,20 @@ export const subscribeToNewsletter = async (data: NewsletterSubscriber): Promise
             source: data.source || 'footer',
             subscribed_at: new Date().toISOString()
           })
-          .eq('email', data.email);
+          .eq('email', data.email)
+          .select();
 
         if (updateError) {
-          console.error('Error updating newsletter subscription:', updateError);
           return false;
         }
+        return true;
       } else {
-        console.error('Error subscribing to newsletter:', error);
         return false;
       }
     }
 
     return true;
   } catch (error) {
-    console.error('Exception subscribing to newsletter:', error);
     return false;
   }
 };

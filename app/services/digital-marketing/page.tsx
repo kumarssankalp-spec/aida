@@ -1,5 +1,6 @@
 ﻿'use client';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import { motion, MotionConfig, useInView, useScroll, useTransform, useMotionValue, useAnimation } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
@@ -156,6 +157,7 @@ function ScrollingBadges({ badges }: { badges: string[] }) {
 
 // CTA Form Component
 function CTAForm() {
+  const router = useRouter();
   const [formData, setFormData] = React.useState({
     firstName: '',
     lastName: '',
@@ -211,23 +213,22 @@ function CTAForm() {
 
       if (success) {
         setSubmitStatus('success');
-        setFormData({
-          firstName: '',
-          lastName: '',
-          phone: '',
-          email: '',
-          company: '',
-          services: [],
-          message: ''
-        });
+        // Set flag to allow access to thank-you page
+        sessionStorage.setItem('formSubmitted', 'true');
+        // Redirect to thank you page after successful submission
+        window.location.href = '/thank-you';
       } else {
         setSubmitStatus('error');
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Form submission error:', error);
       setSubmitStatus('error');
-    } finally {
       setIsSubmitting(false);
+    }
+    
+    // Only reset status on error
+    if (submitStatus === 'error') {
       setTimeout(() => setSubmitStatus(null), 5000);
     }
   };

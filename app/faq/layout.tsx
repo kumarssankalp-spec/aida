@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'FAQ - Frequently Asked Questions | AIDA Corporation',
-  description: 'Find answers to frequently asked questions about AIDA Corporation\'s services including Big Data Analysis, Artificial Intelligence, Technology Services, and Digital Marketing solutions.',
+  title: 'FAQ - AIDA Corporation',
+  description: 'Find answers to frequently asked questions about AIDA\'s AI, Big Data, Technology Services, and Digital Marketing solutions.',
   keywords: 'AIDA FAQ, questions, big data questions, AI questions, technology services FAQ, digital marketing questions',
   openGraph: {
     title: 'FAQ - AIDA Corporation',

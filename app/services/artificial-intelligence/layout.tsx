@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Artificial Intelligence Solutions | AIDA Corporation',
-  description: 'Advanced Artificial Intelligence and Machine Learning solutions by AIDA Corporation. Custom AI development, ML models, NLP, computer vision, and intelligent automation services.',
+  title: 'AI Solutions | AIDA Corporation',
+  description: 'Advanced AI and Machine Learning solutions by AIDA. Custom AI development, ML models, NLP, computer vision, and intelligent automation services.',
   keywords: 'artificial intelligence, AI solutions, machine learning, ML services, NLP, computer vision, AI development',
   openGraph: {
-    title: 'Artificial Intelligence Solutions - AIDA Corporation',
+    title: 'AI Solutions - AIDA Corporation',
     description: 'Transform your business with cutting-edge AI and Machine Learning solutions.',
     url: 'https://aidacorp.in/services/artificial-intelligence',
     siteName: 'AIDA Corporation',

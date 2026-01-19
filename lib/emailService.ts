@@ -27,6 +27,7 @@ export interface ContactFormData {
 
 export interface NewsletterData {
   email: string;
+  source?: string;
 }
 
 // Initialize EmailJS
@@ -154,10 +155,10 @@ export const sendContactForm = async (data: ContactFormData): Promise<boolean> =
 // Send newsletter subscription
 export const sendNewsletterSubscription = async (data: NewsletterData): Promise<boolean> => {
   try {
-    // Save to newsletter table
+    // Save to newsletter table with provided source or default to 'footer'
     await subscribeToNewsletter({
       email: data.email,
-      source: 'footer'
+      source: data.source || 'footer'
     });
 
     // Get current journey and save to user_journeys table

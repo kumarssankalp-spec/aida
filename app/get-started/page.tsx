@@ -21,38 +21,12 @@ function LeadFormContent() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitStatus, setSubmitStatus] = React.useState<'success' | 'error' | null>(null);
 
-  // Redirect if no referrer (direct access attempt) and track page visit
+  // Track page visit
   React.useEffect(() => {
-    const referrer = document.referrer;
-    const allowedPaths = [
-      '/services/big-data-analysis',
-      '/services/artificial-intelligence',
-      '/services/technology-services',
-      '/services/digital-marketing',
-      '/big-data-analysis',
-      '/artificial-intelligence',
-      '/technology-services',
-      '/digital-marketing',
-      '/'
-    ];
-    
-    // Check if referrer is from allowed pages or same origin
-    const isAllowedReferrer = referrer && (
-      allowedPaths.some(path => referrer.includes(path)) ||
-      referrer.includes(window.location.origin) ||
-      new URL(referrer, window.location.origin).pathname !== '/get-started'
-    );
-
-    // Also check if there's a service parameter (coming from a service page button)
-    const hasServiceParam = searchParams.get('service') !== null;
-
-    if (!isAllowedReferrer && !sessionStorage.getItem('leadFormAccess') && !hasServiceParam) {
-      router.push('/');
-    } else {
-      sessionStorage.setItem('leadFormAccess', 'true');
-      // Note: Page tracking is handled by JourneyTracker component automatically
-    }
-  }, [router, searchParams]);
+    // Allow direct access to the page
+    sessionStorage.setItem('leadFormAccess', 'true');
+    // Note: Page tracking is handled by JourneyTracker component automatically
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,23 +72,22 @@ function LeadFormContent() {
 
       if (success) {
         setSubmitStatus('success');
-        setFormData({
-          firstName: '',
-          lastName: '',
-          phone: '',
-          email: '',
-          company: '',
-          services: serviceParam ? [serviceParam] : [],
-          message: ''
-        });
+        // Set flag to allow access to thank-you page
+        sessionStorage.setItem('formSubmitted', 'true');
+        // Redirect to thank you page after successful submission
+        window.location.href = '/thank-you';
       } else {
         setSubmitStatus('error');
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Form submission error:', error);
       setSubmitStatus('error');
-    } finally {
       setIsSubmitting(false);
+    }
+    
+    // Only reset status on error
+    if (submitStatus === 'error') {
       setTimeout(() => setSubmitStatus(null), 5000);
     }
   };
@@ -299,29 +272,7 @@ function LeadFormContent() {
                 ></textarea>
 
                 {/* Status Messages */}
-                {submitStatus === 'success' && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white/95 backdrop-blur-sm border border-white/30 rounded-2xl p-8 text-center shadow-lg"
-              >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4"
-                >
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </motion.div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2">Thank You!</h3>
-                <p className="text-gray-700 text-lg mb-1">Your inquiry has been successfully submitted.</p>
-                <p className="text-gray-600">Our team will review your request and get back to you within 24 hours.</p>
-              </motion.div>
-            )}
-
-            {submitStatus === 'error' && (
+                {submitStatus === 'error' && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -338,9 +289,8 @@ function LeadFormContent() {
               </motion.div>
             )}
 
-                {/* Submit Button - Right Aligned (Hidden on success) */}
-                {submitStatus !== 'success' && (
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pt-3">
+                {/* Submit Button */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pt-3">
                     <motion.div 
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -409,7 +359,6 @@ function LeadFormContent() {
                       )}
                     </motion.button>
                   </div>
-                )}
                 </motion.form>
               </div>
             </div>

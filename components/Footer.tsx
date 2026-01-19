@@ -28,7 +28,10 @@ export default function Footer({ className = '', id }: FooterProps) {
     setIsSubmitting(true);
     
     try {
-      const success = await sendNewsletterSubscription({ email });
+      const success = await sendNewsletterSubscription({ 
+        email,
+        source: 'footer'
+      });
       
       if (success) {
         setSubmitStatus('success');
