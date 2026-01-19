@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/admin/', '/get-started'],
+      disallow: [],
     },
     sitemap: 'https://aidacorp.in/sitemap.xml',
   }
