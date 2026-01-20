@@ -154,7 +154,7 @@ export default function Footer({ className = '', id }: FooterProps) {
                   className="flex-1 px-4 py-3 border-1 border-black rounded-md text-base focus:outline-none focus:border-[#5919C1] transition"
                 />
                 <button
-                  type="submit"
+                  type="subscribe"
                   disabled={isSubmitting || !isSubscribed}
                   className={`group relative px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-medium flex items-center gap-2 sm:gap-3 transition-all duration-300 overflow-hidden whitespace-nowrap ${
                     submitStatus === 'error'
@@ -192,7 +192,7 @@ export default function Footer({ className = '', id }: FooterProps) {
                     {isSubmitting 
                       ? (
                         <>
-                          <span>Submitting</span>
+                          <span>Subscribing</span>
                           <span className="inline-flex gap-0.5 pb-1">
                             <span className="w-1.5 h-1.5 bg-[#5919C1]  rounded-full animate-[wave_1.2s_infinite_ease-in-out]"></span>
                             <span className="w-1.5 h-1.5 bg-[#5919C1]  rounded-full animate-[wave_1.2s_infinite_ease-in-out] [animation-delay:0.2s]"></span>
