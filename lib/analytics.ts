@@ -53,8 +53,6 @@ class Analytics {
     gtag('js', new Date());
     gtag('config', 'GA_MEASUREMENT_ID');
     */
-
-    console.log('Tracking scripts loaded');
   }
 
   // Get consent status from localStorage
@@ -79,8 +77,6 @@ class Analytics {
 
     // Store in sessionStorage for journey tracking
     this.recordJourneyStep(data.page);
-    
-    console.log('Page view tracked:', data);
   }
 
   // Track custom event
@@ -95,8 +91,6 @@ class Analytics {
         value: data.value,
       });
     }
-
-    console.log('Event tracked:', data);
   }
 
   // Record journey step in sessionStorage

@@ -75,14 +75,8 @@ export const sendContactForm = async (data: ContactFormData): Promise<boolean> =
     }
 
     // THEN save lead submission (references session_id from user_journeys)
-    if (data.isLeadForm && journey && data.firstName && data.lastName && data.services) {
-      console.log('💾 Saving to lead_data:', {
-        sessionId: journey.sessionId,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        services: data.services
-      });
-      
+    const hasServices = Array.isArray(data.services) ? data.services.length > 0 : !!data.services;
+    if (data.isLeadForm && journey && data.firstName && data.lastName && hasServices) {
       const leadSaved = await saveLeadSubmission({
         sessionId: journey.sessionId,
         userId: journey.userId,
@@ -129,7 +123,9 @@ export const sendContactForm = async (data: ContactFormData): Promise<boolean> =
         hasJourney: !!journey,
         hasFirstName: !!data.firstName,
         hasLastName: !!data.lastName,
-        hasServices: !!data.services
+        hasServices: Array.isArray(data.services) ? data.services.length > 0 : !!data.services,
+        services: data.services,
+        servicesType: typeof data.services
       });
     }
 

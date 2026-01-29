@@ -60,6 +60,7 @@ export interface LeadSubmission {
 // Save lead submission
 export const saveLeadSubmission = async (data: LeadSubmission): Promise<boolean> => {
   try {
+    
     // Call server-side API route which uses service role key (bypasses RLS)
     const response = await fetch('/api/lead', {
       method: 'POST',
@@ -71,12 +72,14 @@ export const saveLeadSubmission = async (data: LeadSubmission): Promise<boolean>
 
     const result = await response.json();
 
-    if (!response.ok || !result.success) {
+    if (!response.ok) {
+      console.error('Lead submission failed:', result.error || 'Unknown error');
       return false;
     }
 
     return true;
   } catch (error) {
+    console.error('Lead submission error:', error);
     return false;
   }
 };

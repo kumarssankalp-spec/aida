@@ -18,8 +18,6 @@ export default function CookieConsent() {
   const initializeTracking = () => {
     // Initialize tracking scripts here
     // Example: Google Analytics, Facebook Pixel, etc.
-    console.log('Tracking initialized');
-    
     // You can add your tracking code here
     // For example: gtag('config', 'GA_MEASUREMENT_ID');
   };

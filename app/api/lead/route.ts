@@ -5,6 +5,10 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing Supabase environment variables');
+}
+
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
@@ -62,13 +66,17 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) {
-      console.error('Failed to save lead:', error);
+      console.error('Failed to save lead to database:', error.message);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
     console.error('API error:', error);
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Internal server error',
+      details: error instanceof Error ? error.stack : undefined
+    }, { status: 500 });
   }
 }

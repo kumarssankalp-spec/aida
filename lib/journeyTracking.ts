@@ -646,7 +646,6 @@ export const autoSaveReturningUserJourney = async (): Promise<void> => {
     // Check if journey was already saved in this session (prevent double-save)
     const alreadySaved = sessionStorage.getItem(JOURNEY_SAVED_KEY) === 'true';
     if (alreadySaved) {
-      console.log('⏭️ Journey already saved this session, skipping auto-save');
       return;
     }
     
@@ -749,10 +748,8 @@ export const autoSaveReturningUserJourney = async (): Promise<void> => {
       has_submitted_form: true,
       created_at: new Date().toISOString()
     }]);
-    
-    console.log('✅ Auto-saved returning user journey:', storedEmail, 'Visit:', newTotalVisits);
   } catch (error) {
-    console.error('❌ Error auto-saving journey:', error);
+    console.error('Error auto-saving journey:', error);
   }
 };
 
@@ -872,7 +869,6 @@ export const saveJourneyToSupabase = async (data: UserJourneySubmission): Promis
     
     // Mark that journey was saved this session (prevent double-save)
     sessionStorage.setItem(JOURNEY_SAVED_KEY, 'true');
-    console.log('✅ Journey saved successfully - session flag set');
     
     return true;
   } catch (error) {

@@ -251,7 +251,6 @@ export default function FAQPage() {
 
   const handleSearch = () => {
     // Search is already handled in real-time through filteredFAQs
-    console.log('Searching for:', searchQuery);
   };
 
   return (

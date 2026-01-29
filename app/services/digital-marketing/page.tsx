@@ -169,6 +169,7 @@ function CTAForm() {
   });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitStatus, setSubmitStatus] = React.useState<'success' | 'error' | null>(null);
+  const [errorMessage, setErrorMessage] = React.useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,23 +214,32 @@ function CTAForm() {
 
       if (success) {
         setSubmitStatus('success');
+        setIsSubmitting(false);
+        setErrorMessage('');
         // Set flag to allow access to thank-you page
         sessionStorage.setItem('formSubmitted', 'true');
-        // Redirect to thank you page after successful submission
-        window.location.href = '/thank-you';
+        // Show green button for 1.5 seconds, then navigate without full reload
+        setTimeout(() => {
+          router.push('/thank-you');
+        }, 1500);
       } else {
         setSubmitStatus('error');
         setIsSubmitting(false);
+        setErrorMessage('Failed to submit form. Please try again or contact us directly.');
       }
     } catch (error) {
       console.error('Form submission error:', error);
       setSubmitStatus('error');
       setIsSubmitting(false);
+      setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
     }
     
-    // Only reset status on error
+    // Reset error status after 10 seconds
     if (submitStatus === 'error') {
-      setTimeout(() => setSubmitStatus(null), 5000);
+      setTimeout(() => {
+        setSubmitStatus(null);
+        setErrorMessage('');
+      }, 10000);
     }
   };
 
@@ -310,12 +320,11 @@ function CTAForm() {
                       : [...formData.services, service]
                   });
                 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`px-4 py-2 rounded-full border-2 transition-all duration-300 ${
+                whileTap={{ scale: 0.85 }}
+                className={`relative px-4 py-2 rounded-full border-2 transition-all duration-300 ${
                   formData.services.includes(service)
-                    ? 'border-[#7B3FF2] bg-[#7B3FF2] text-white'
-                    : 'border-gray-800 text-gray-800 hover:border-[#7B3FF2]'
+                    ? 'border-[#7B3FF2] bg-[#7B3FF2] text-white scale-95 before:content-[""] before:absolute before:inset-[-8px] before:rounded-full before:border-2 before:border-[#7B3FF2]'
+                    : 'border-gray-800 text-gray-800 hover:border-[#7B3FF2] scale-100'
                 }`}
               >
                 {service}
@@ -333,6 +342,27 @@ function CTAForm() {
           rows={3}
           className="w-full py-4 pb-4 border-b border-gray-800 bg-transparent text-black placeholder:text-gray-600 focus:outline-none focus:border-[#7B3FF2] transition-colors resize-none"
         ></textarea>
+
+        {/* Error Message */}
+        {submitStatus === 'error' && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 border-2 border-red-500 rounded-xl p-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <div className="text-left flex-1">
+                <h3 className="text-lg font-semibold text-red-900 mb-1">Submission Failed</h3>
+                <p className="text-red-800 text-sm">{errorMessage || 'We encountered an issue processing your request. Please try again.'}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Submit Button - Right Aligned */}
         <div className="flex justify-end pt-4">
@@ -356,25 +386,30 @@ function CTAForm() {
             <span className={`absolute inset-0 bg-gradient-to-r from-[#5919C1] to-[#7B3FF2] translate-x-[-100%] transition-transform duration-300 ${
               (!isSubmitting && !submitStatus && formData.firstName && formData.phone && formData.email && formData.services.length > 0) ? 'group-hover:translate-x-0' : ''
             }`}></span>
-            <span className="relative z-10 flex items-end gap-2">
-              {isSubmitting 
-                ? (
-                  <>
-                    <span>Submitting</span>
-                    <span className="inline-flex gap-0.5 pb-1">
-                      <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-[wave_1.2s_infinite_ease-in-out]"></span>
-                      <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-[wave_1.2s_infinite_ease-in-out] [animation-delay:0.2s]"></span>
-                      <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-[wave_1.2s_infinite_ease-in-out] [animation-delay:0.4s]"></span>
-                    </span>
-                  </>
-                )
-                : submitStatus === 'success' 
-                ? "Thank you! We'll be in touch soon."
-                : submitStatus === 'error'
-                ? "Error! Please try again."
-                : 'Get Your Free Plan'}
+            <span className="relative z-10 flex items-center gap-2">
+              {isSubmitting ? (
+                <>
+                  <span>Submitting</span>
+                  <span className="inline-flex gap-0.5">
+                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-[wave_1.2s_infinite_ease-in-out]"></span>
+                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-[wave_1.2s_infinite_ease-in-out] [animation-delay:0.2s]"></span>
+                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-[wave_1.2s_infinite_ease-in-out] [animation-delay:0.4s]"></span>
+                  </span>
+                </>
+              ) : submitStatus === 'success' ? (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Success!</span>
+                </>
+              ) : submitStatus === 'error' ? (
+                "Error! Please try again."
+              ) : (
+                'Get Your Free Plan'
+              )}
             </span>
-            {!isSubmitting && submitStatus !== 'success' && (
+            {!isSubmitting && !submitStatus && (
               <svg
                 className={`relative z-10 w-5 h-5 transition-all duration-500 ${
                   !submitStatus && formData.firstName && formData.phone && formData.email && formData.services.length > 0 

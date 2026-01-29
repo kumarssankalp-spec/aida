@@ -78,9 +78,6 @@ export default function RootLayout({
   return (
     <html lang="en" style={{ scrollBehavior: 'smooth' }}>
       <head>
-        {/* facebook meta tag*/}
-        <meta name="facebook-domain-verification" content="34hqvx9u9l2liwzv22uzb8q9pvh5o5" />
-
         {/* Google Tag Manager */}
         <Script
           id="google-tag-manager"

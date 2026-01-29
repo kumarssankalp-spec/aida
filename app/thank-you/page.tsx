@@ -4,22 +4,31 @@ import React, { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { sendNewsletterSubscription } from '@/lib/emailService';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function ThankYouPage() {
+  const router = useRouter();
   const [email, setEmail] = React.useState('');
   const [isSubscribed, setIsSubscribed] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitStatus, setSubmitStatus] = React.useState<'success' | 'error' | null>(null);
+  const [countdown, setCountdown] = React.useState(60);
+  const [isAuthorized, setIsAuthorized] = React.useState(false);
 
   // Redirect if accessed directly without form submission
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const hasSubmitted = sessionStorage.getItem('formSubmitted');
       if (!hasSubmitted) {
-        window.location.href = '/get-started';
+        router.push('/get-started');
+        return;
       } else {
-        // Clear the flag after accessing the page
-        sessionStorage.removeItem('formSubmitted');
+        // Mark as authorized but don't remove the flag yet
+        setIsAuthorized(true);
+        // Clear the flag after a short delay
+        setTimeout(() => {
+          sessionStorage.removeItem('formSubmitted');
+        }, 1000);
         // Track the thank-you page visit
         const trackVisit = async () => {
           const { trackPageVisit } = await import('@/lib/journeyTracking');
@@ -28,7 +37,25 @@ export default function ThankYouPage() {
         trackVisit();
       }
     }
-  }, []);
+  }, [router]);
+
+  // Auto-redirect to home after 60 seconds
+  React.useEffect(() => {
+    if (!isAuthorized) return; // Don't start countdown until authorized
+
+    const countdownInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          router.push('/');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(countdownInterval);
+  }, [router, isAuthorized]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,17 +115,27 @@ export default function ThankYouPage() {
                 <p className="text-lg sm:text-xl md:text-2xl text-gray-600 leading-relaxed">
                   While we prep, subscribe to our newsletter for the latest tech insights and see why we're the top choice for your project.
                 </p>
+                
+                {/* Countdown Timer */}
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-sm text-gray-500 mt-4"
+                >
+                  Redirecting to home in {countdown} seconds...
+                </motion.p>
               </div>
 
               {/* Back to Home Button */}
-              <motion.a
-                href="/"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="group relative inline-flex items-center gap-3 sm:gap-4 px-6 sm:px-8 py-4 sm:py-5 border-2 border-black rounded-full text-black font-medium text-base sm:text-lg transition-all duration-300 hover:text-white hover:border-[#5919C1] overflow-hidden w-full sm:w-auto justify-center"
-              >
+              <Link href="/">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group relative inline-flex items-center gap-3 sm:gap-4 px-6 sm:px-8 py-4 sm:py-5 border-2 border-black rounded-full text-black font-medium text-base sm:text-lg transition-all duration-300 hover:text-white hover:border-[#5919C1] overflow-hidden w-full sm:w-auto justify-center cursor-pointer"
+                >
                 <span className="absolute inset-0 bg-[#5919C1] translate-x-[-100%] transition-transform duration-300 group-hover:translate-x-0"></span>
-                <span className="relative z-10">Back to Home</span>
+                <span className="relative z-10">Back to Home Now</span>
                 <svg
                   className="relative z-10 w-6 h-6 transition-all duration-300 rotate-45 group-hover:rotate-[330deg] group-hover:translate-x-1"
                   fill="none"
@@ -108,7 +145,8 @@ export default function ThankYouPage() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
-              </motion.a>
+              </motion.div>
+              </Link>
             </motion.div>
 
             {/* Right Side - Newsletter Form with Video Background */}
