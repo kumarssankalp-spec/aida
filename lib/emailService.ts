@@ -85,7 +85,7 @@ export const sendContactForm = async (data: ContactFormData): Promise<boolean> =
         email: data.email,
         phone: data.phone,
         company: data.company,
-        services: data.services,
+        services: data.services || [],
         message: data.message,
         sourcePage: data.sourcePage,
         sourceUrl: typeof window !== 'undefined' ? window.location.href : undefined,
